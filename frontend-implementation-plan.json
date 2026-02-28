@@ -1,0 +1,410 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "CampusVoice AI – Campus Complaint Management System (Frontend)",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Implement role-based authentication UI with registration, login, logout, and session persistence for Student, Staff, HOD, and Admin roles",
+      "acceptanceCriteria": [
+        "Registration form supports all four roles with appropriate field options.",
+        "Login authenticates by username/password and stores session in localStorage.",
+        "Session persists on page refresh until logout or deletion.",
+        "Students cannot access HOD, Staff, or Admin dashboards.",
+        "Staff and HOD see only complaints belonging to their department.",
+        "Admin can see all complaints regardless of department.",
+        "Sensitive complaint categories are hidden from Staff and visible only to HOD and Admin."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/RegisterPage.tsx",
+          "operation": "create",
+          "description": "Create registration form with fields for username, password, email, role selection (Student/Staff/HOD/Admin), and department dropdown. Use shadcn/ui Form, Input, Select components. Call backend registration capability and store session in localStorage upon success. Include role-specific field validation (e.g., department is required for Staff/HOD)."
+        },
+        {
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "create",
+          "description": "Create login form with username and password fields using shadcn/ui components. Call backend authentication capability, store returned session data (user ID, role, department) in localStorage, and redirect to the appropriate dashboard based on role. Display error messages for failed login attempts. Use the generated campus-bg.dim_1920x1080.png at frontend/public/assets/generated/campus-bg.dim_1920x1080.png as background image."
+        },
+        {
+          "path": "frontend/src/hooks/useAuth.ts",
+          "operation": "create",
+          "description": "Create authentication hook that manages localStorage session (read/write/clear), verifies session validity on app startup by checking if stored user still exists in backend, provides login/logout/register functions, and exposes current user data (role, department, userId). Auto-clear ghost sessions and redirect to login if user no longer exists in backend."
+        },
+        {
+          "path": "frontend/src/components/ProtectedRoute.tsx",
+          "operation": "create",
+          "description": "Create route guard component that checks user authentication and role. Redirect unauthenticated users to login. For role-specific routes, verify the user has the required role (Student/Staff/HOD/Admin) and redirect unauthorized users to their appropriate dashboard or access-denied page."
+        },
+        {
+          "path": "frontend/src/components/AccessDeniedScreen.tsx",
+          "operation": "create",
+          "description": "Create access-denied screen component with clear messaging when unauthorized users try to access restricted pages. Include a button to return to their role-appropriate dashboard."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire authentication routes (register, login) and wrap role-specific dashboard routes with ProtectedRoute component. Add route guards for Student, Staff, HOD, and Admin dashboards. Use useAuth hook to check session on app mount and handle ghost session cleanup."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Implement complaint registration form with text, category selection, priority levels, multiple media uploads (photos, videos, voice notes), and auto-generated unique Complaint ID",
+      "acceptanceCriteria": [
+        "Complaint form contains all required fields including text, category, priority, and media upload.",
+        "Multiple photos, videos, and voice notes can be added and previewed before submission.",
+        "Each submitted complaint receives a unique Complaint ID.",
+        "Deadline is automatically computed and displayed based on priority (e.g., High=1 day, Medium=3 days, Low=7 days).",
+        "All 34 categories are available in the dropdown.",
+        "Submitted complaints appear in the student's tracking view."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/StudentDashboard.tsx",
+          "operation": "create",
+          "description": "Create student dashboard with navigation to submit complaint, track complaints, view AI chatbot, and access emergency button. Display summary statistics (total complaints, pending, resolved). Include sidebar with logout and delete account buttons. Use shadcn/ui Card components for layout."
+        },
+        {
+          "path": "frontend/src/pages/SubmitComplaintPage.tsx",
+          "operation": "create",
+          "description": "Create complaint submission form with: text description textarea, category dropdown (all 34 categories from BuildRequest), priority radio buttons (High/Medium/Low), anonymous mode toggle, multiple file upload inputs for photos/videos/voice notes with preview thumbnails, and submit button. Display computed deadline based on priority. After submission, show unique Complaint ID and redirect to tracking view. Use shadcn/ui Form, Textarea, Select, RadioGroup, Checkbox components."
+        },
+        {
+          "path": "frontend/src/components/MediaUploader.tsx",
+          "operation": "create",
+          "description": "Create reusable media uploader component supporting multiple file selection for photos, videos, and voice notes. Display preview thumbnails with remove option. Convert files to base64 for backend submission. Show file size and type validation errors. Use shadcn/ui Button and Progress components."
+        },
+        {
+          "path": "frontend/src/utils/complaintHelpers.ts",
+          "operation": "create",
+          "description": "Create utility functions for: generating unique Complaint IDs (e.g., CMP-timestamp-random), calculating deadline based on priority (High=1 day, Medium=3 days, Low=7 days), formatting complaint data for backend submission, and validating complaint form fields."
+        },
+        {
+          "path": "frontend/src/constants/complaintCategories.ts",
+          "operation": "create",
+          "description": "Export array of all 34 complaint categories as listed in BuildRequest: Faculty Issues, Internal Marks/Grading Issues, Exam & Hall Ticket Issues, Attendance Problems, Assignment/Submission Issues, Timetable Problems, Classroom Maintenance, Electricity/Fan/AC Issues, Water Supply Problems, Washroom Maintenance, WiFi/Internet Issues, Library Related Issues, Laboratory Equipment Issues, Hostel Room Maintenance, Food Quality Issues, Cleanliness Issues, Water Problems in Hostel, Mess Timing Issues, Website Login Problems, Portal Errors, ID Card Issues, Online Fee Payment Issues, Ragging Complaint, Harassment Complaint, Security Issues, Misbehavior Complaint, Scholarship Issues, Fee Payment Problems, Refund Related Issues, Bus Timing Issues, Driver Behavior Complaint, Route Problems, Suggestion/Feedback, Other Complaints."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Implement Anonymous Complaint Mode toggle in submission form with frontend handling for identity display based on user role",
+      "acceptanceCriteria": [
+        "A toggle or checkbox in the complaint form enables anonymous submission.",
+        "In HOD and Staff views, anonymous complaints display a placeholder instead of the student's name.",
+        "Admin view reveals the actual student identity for anonymous complaints.",
+        "Anonymous complaints are still assigned and routed to the correct department."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/SubmitComplaintPage.tsx",
+          "operation": "modify",
+          "description": "Add anonymous mode toggle (checkbox) to complaint form. When enabled, display a privacy notice explaining that identity is hidden from Staff/HOD but visible to Admin. Include the anonymous flag in complaint submission data."
+        },
+        {
+          "path": "frontend/src/components/ComplaintCard.tsx",
+          "operation": "create",
+          "description": "Create reusable complaint card component that displays complaint details. Conditionally show student name based on: if complaint is anonymous AND current user role is Staff or HOD, display 'Anonymous Student'; if Admin or the complaint owner, show actual name. Include status badge, priority indicator, category, description preview, and action buttons. Use shadcn/ui Card and Badge components."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Integrate Gemini AI for auto-category detection, department assignment, resolution prediction, image analysis, and smart chatbot with voice assistant",
+      "acceptanceCriteria": [
+        "When a student types a complaint description, AI suggests a category and priority automatically.",
+        "Complaint is auto-assigned to the matching department.",
+        "Resolution prediction in days is displayed to the student after AI analysis.",
+        "Uploading an image triggers AI analysis to identify visible issues.",
+        "An AI chatbot widget is accessible from the student dashboard.",
+        "Chatbot responses can be read aloud via a voice assistant (TTS) button."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/services/geminiService.ts",
+          "operation": "create",
+          "description": "Create Gemini AI service using platform-injected API key from environment. Implement functions for: (1) analyzeComplaintText(description) to detect category and priority via NLP, (2) predictResolutionDays(description, category, priority), (3) analyzeImage(base64Image) to detect issues from photo uploads (e.g., water leakage), (4) getChatbotResponse(userMessage, conversationHistory) for intelligent responses. Handle API errors gracefully and return fallback suggestions."
+        },
+        {
+          "path": "frontend/src/pages/SubmitComplaintPage.tsx",
+          "operation": "modify",
+          "description": "Integrate Gemini AI calls: on description blur/change, call analyzeComplaintText and auto-populate category and priority fields with AI suggestions (allow manual override). On image upload, call analyzeImage and display detected issues as hints. After form completion, call predictResolutionDays and show estimated resolution time to student before submission."
+        },
+        {
+          "path": "frontend/src/components/AIChatbot.tsx",
+          "operation": "create",
+          "description": "Create AI chatbot widget component with collapsible chat interface. Display conversation history, user input field, send button, and TTS button for each bot response. Call geminiService.getChatbotResponse for intelligent replies about complaint guidance, status tracking help, and FAQs. Implement Web Speech API (SpeechSynthesis) for text-to-speech voice assistant playback when TTS button is clicked. Use shadcn/ui Dialog or Sheet for chat UI."
+        },
+        {
+          "path": "frontend/src/pages/StudentDashboard.tsx",
+          "operation": "modify",
+          "description": "Add floating AI chatbot button (bottom-right corner) that opens AIChatbot component. Ensure chatbot is accessible from all student pages."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Implement complaint tracking system with status history, PDF report generation, and analytics dashboard with charts",
+      "acceptanceCriteria": [
+        "Students can view all their complaints with current status and history.",
+        "Status transitions (Registered → In Progress → Resolved) are visible.",
+        "A 'Download Report' option exports complaint history as a PDF or JSON file.",
+        "Admin dashboard shows bar chart of complaints by category and pie chart by status.",
+        "Department-wise complaint statistics are displayed in the Admin analytics panel."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TrackComplaintsPage.tsx",
+          "operation": "create",
+          "description": "Create complaint tracking page for students showing all their submitted complaints in a list or table. Display Complaint ID, category, status, priority, deadline, and submission date. Include search/filter by status or category. Provide 'View Details' button for each complaint. Add 'Download Report' button that generates and downloads a PDF or JSON file of complaint history. Use shadcn/ui Table or Card components."
+        },
+        {
+          "path": "frontend/src/pages/ComplaintDetailPage.tsx",
+          "operation": "create",
+          "description": "Create complaint detail page showing full complaint information: description, category, priority, status, media attachments (photos/videos/voice notes with playback), status history timeline, feedback/rating (if resolved), and AI predictions. Students see only their own complaints; Staff/HOD/Admin see complaints they have access to based on role/department. Use shadcn/ui Card, Tabs, Timeline components."
+        },
+        {
+          "path": "frontend/src/components/StatusHistoryTimeline.tsx",
+          "operation": "create",
+          "description": "Create timeline component displaying status transitions (Registered → In Progress → Resolved) with timestamps. Show visual progression indicator. Use shadcn/ui or custom timeline styling with Framer Motion animations."
+        },
+        {
+          "path": "frontend/src/utils/reportGenerator.ts",
+          "operation": "create",
+          "description": "Create utility functions to generate PDF reports using a library like jsPDF or export JSON files of complaint history. Include complaint ID, description, category, priority, status, dates, and feedback. Trigger browser download on button click."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "create",
+          "description": "Create admin dashboard with overview statistics (total complaints, by status, by department), navigation to view all complaints, user management, emergency logs, and analytics panel. Include filters for department, priority, and date range. Display bar chart of complaints by category and pie chart by status distribution using a charting library (e.g., recharts or Chart.js). Show department-wise complaint statistics in a table or card grid. Include sidebar with logout and account delete buttons. Use shadcn/ui Card, Select, DatePicker components."
+        },
+        {
+          "path": "frontend/src/components/ComplaintAnalytics.tsx",
+          "operation": "create",
+          "description": "Create analytics component with bar chart (complaints by category), pie chart (status distribution: Registered/In Progress/Resolved), and department-wise statistics table. Use recharts library for chart rendering. Accept filtered complaint data as props."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Implement in-app notification system and real-time emergency alert overlay with visual and audible siren using WebSockets and Web Audio API",
+      "acceptanceCriteria": [
+        "Students receive an email when their complaint status changes.",
+        "HOD receives an in-app notification when a new complaint in their department is submitted.",
+        "Admin receives an in-app notification for all new complaints.",
+        "Emergency alert is broadcast in real-time to Admin and the relevant HOD.",
+        "Emergency alert shows a full-screen red overlay with student name and location.",
+        "A professional-grade audible siren plays on the HOD/Admin device upon receiving an emergency alert."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/services/socketService.ts",
+          "operation": "create",
+          "description": "Create WebSocket service using Socket.io client to connect to backend Socket.io server. Implement listeners for: 'notification' event (in-app alerts for HOD/Admin), 'emergencyAlert' event (real-time emergency broadcasts). Emit events for emergency button click. Handle reconnection logic and connection state."
+        },
+        {
+          "path": "frontend/src/components/NotificationBell.tsx",
+          "operation": "create",
+          "description": "Create notification bell icon component in app header for HOD and Admin roles. Display unread notification count badge. On click, show dropdown list of recent notifications (e.g., 'New complaint submitted in Computer Science department'). Mark notifications as read on interaction. Use shadcn/ui DropdownMenu and Badge components."
+        },
+        {
+          "path": "frontend/src/components/EmergencyAlertOverlay.tsx",
+          "operation": "create",
+          "description": "Create full-screen emergency alert overlay component with flashing red background. Display student name, reported location, timestamp, and Acknowledge/Dismiss buttons. Trigger Web Audio API to play a professional 'Whoop' siren sound for 5 seconds when overlay appears. Component listens to Socket.io 'emergencyAlert' event and auto-displays when Admin or relevant HOD receives alert. Use Framer Motion for pulsing animation."
+        },
+        {
+          "path": "frontend/src/utils/audioService.ts",
+          "operation": "create",
+          "description": "Create audio utility service using Web Audio API. Implement functions to: (1) play emergency siren (5-second professional 'Whoop' sound using oscillator or loaded audio file), (2) play confirmation beep for student emergency button click. Handle audio context initialization and browser autoplay policies."
+        },
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "modify",
+          "description": "Integrate NotificationBell component into admin dashboard header. Initialize socketService connection on mount and listen for emergency alerts. Render EmergencyAlertOverlay component to handle real-time emergency broadcasts."
+        },
+        {
+          "path": "frontend/src/pages/HODDashboard.tsx",
+          "operation": "create",
+          "description": "Create HOD dashboard showing complaints for their specific department only. Include department-wide statistics, resolution rate chart, staff performance view (if applicable), and escalate button for high-priority complaints. Integrate NotificationBell and EmergencyAlertOverlay components. Initialize socketService to receive department-specific notifications and emergency alerts. Use shadcn/ui Card and Table components."
+        },
+        {
+          "path": "frontend/src/pages/StaffDashboard.tsx",
+          "operation": "create",
+          "description": "Create staff dashboard showing complaints assigned to their department (excluding sensitive categories). Include complaint list with filters, update status capability, and department statistics. Use shadcn/ui Card, Table, and Select components."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Build Admin and HOD dashboards with complaint filtering, analytics, user management, and emergency log management",
+      "acceptanceCriteria": [
+        "Admin sees all complaints and can filter by department, priority, and date.",
+        "Admin panel includes resolution rate chart and department-wise complaint statistics.",
+        "Admin can delete individual user accounts or bulk purge all accounts of a specific role.",
+        "Admin can clear emergency logs.",
+        "Admin can run AI predictive analysis and view results in the panel.",
+        "HOD dashboard shows only complaints for their specific department.",
+        "HOD can escalate high-priority complaints.",
+        "HOD sees resolution statistics for their department."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "modify",
+          "description": "Enhance admin dashboard with: complaint list table showing all complaints with filters (department dropdown, priority checkboxes, date range picker), resolution rate chart, department-wise statistics cards, navigation buttons to User Management and Emergency Logs pages, and AI Predictive Analysis section. Use shadcn/ui Table, Select, DatePicker, Card components."
+        },
+        {
+          "path": "frontend/src/pages/AdminUserManagementPage.tsx",
+          "operation": "create",
+          "description": "Create user management page for Admin showing list of all users with role, department, and email. Include search/filter by role. Provide 'Delete Account' button for individual users with confirmation dialog. Add 'Bulk Purge' section with role selector (Student/Staff/HOD/Admin) and purge button to delete all accounts of selected role with strong confirmation prompt. Use shadcn/ui Table, Button, AlertDialog components."
+        },
+        {
+          "path": "frontend/src/pages/AdminEmergencyLogsPage.tsx",
+          "operation": "create",
+          "description": "Create emergency logs page for Admin showing all emergency alerts with student name, location, timestamp, and status (acknowledged/dismissed). Include 'Clear All Logs' button with confirmation dialog to delete all emergency records. Use shadcn/ui Table, Button, AlertDialog components."
+        },
+        {
+          "path": "frontend/src/pages/AdminAIPredictivePage.tsx",
+          "operation": "create",
+          "description": "Create AI predictive analysis page for Admin. Display form to input analysis parameters (date range, department, category). Call Gemini AI service to run predictive analysis (e.g., predict future complaint trends, identify high-risk categories). Display results in charts or tables. Use shadcn/ui Form, Card, and recharts for visualization."
+        },
+        {
+          "path": "frontend/src/pages/HODDashboard.tsx",
+          "operation": "modify",
+          "description": "Enhance HOD dashboard with: complaint list table filtered to their department only, resolution statistics chart for department, 'Escalate' button for high-priority complaints (sends alert to Admin), and department-specific analytics. Ensure sensitive complaint categories (Ragging, Harassment) are visible. Use shadcn/ui Table, Button, Card components."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire Admin-specific routes (AdminUserManagementPage, AdminEmergencyLogsPage, AdminAIPredictivePage) with ProtectedRoute requiring Admin role. Wire HOD and Staff dashboard routes with appropriate role guards."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Implement feedback and rating system for resolved complaints visible to Admin and HOD",
+      "acceptanceCriteria": [
+        "A rating input and text feedback field appear for complaints in 'Resolved' status.",
+        "Students can submit a rating and optional text comment.",
+        "Admin and HOD can view submitted ratings and feedback in the complaint detail view."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/FeedbackForm.tsx",
+          "operation": "create",
+          "description": "Create feedback form component with star rating input (1-5 stars) and optional text comment textarea. Display for resolved complaints only. On submit, call backend to save feedback. Show success message after submission. Use shadcn/ui Form, Textarea, and custom star rating component."
+        },
+        {
+          "path": "frontend/src/pages/ComplaintDetailPage.tsx",
+          "operation": "modify",
+          "description": "Integrate FeedbackForm component for students viewing their own resolved complaints. Display submitted feedback (rating and comment) in a read-only section for Admin and HOD when viewing complaint details. Use shadcn/ui Card to display feedback."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Implement Emergency Complaint Button in header with instant real-time alert, full-screen overlay, and audible siren for Admin and relevant HOD",
+      "acceptanceCriteria": [
+        "A pulsing red Emergency button is visible in the app header for students.",
+        "Clicking triggers an immediate confirmation beep on the student's device.",
+        "Admin receives the real-time emergency overlay regardless of department.",
+        "Only the HOD of the student's department receives the overlay, not other HODs.",
+        "Overlay includes student name, location, and an Acknowledge/Dismiss button.",
+        "Audible siren plays automatically on the receiving Admin/HOD device.",
+        "Emergency events are logged in the database with timestamp and student info."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/EmergencyButton.tsx",
+          "operation": "create",
+          "description": "Create pulsing red Emergency button component for app header visible to logged-in students. On click, show location input modal (text field for student to enter current location), then emit emergency alert via socketService, play confirmation beep using audioService, and show success message. Use Framer Motion for pulsing animation. Use the generated emergency-icon.dim_128x128.png at frontend/public/assets/generated/emergency-icon.dim_128x128.png as button icon. Use shadcn/ui Button and Dialog components."
+        },
+        {
+          "path": "frontend/src/components/AppHeader.tsx",
+          "operation": "create",
+          "description": "Create app header component with CampusVoice AI logo (using campusvoice-logo.dim_256x256.png at frontend/public/assets/generated/campusvoice-logo.dim_256x256.png), navigation links (role-specific), NotificationBell (for HOD/Admin), EmergencyButton (for Students), and user profile dropdown with logout option. Use shadcn/ui NavigationMenu and DropdownMenu components."
+        },
+        {
+          "path": "frontend/src/pages/StudentDashboard.tsx",
+          "operation": "modify",
+          "description": "Integrate AppHeader component with EmergencyButton visible in student dashboard and all student pages."
+        },
+        {
+          "path": "frontend/src/components/EmergencyAlertOverlay.tsx",
+          "operation": "modify",
+          "description": "Ensure EmergencyAlertOverlay listens to socketService 'emergencyAlert' event, auto-plays siren via audioService, and displays full-screen flashing red overlay with student name, location, and action buttons (Acknowledge/Dismiss). On action, emit acknowledgment to backend via socketService. Use Framer Motion for flashing animation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "summary": "Implement logout and account deletion with session cleanup and ghost session handling on app startup",
+      "acceptanceCriteria": [
+        "Log Out button is visible in the sidebar for all roles.",
+        "Clicking Log Out clears localStorage and returns to the login screen.",
+        "Delete Account button is visible in the sidebar and on the dashboard.",
+        "A confirmation dialog warns that deletion is permanent before proceeding.",
+        "After deletion, all user data (complaints, media, emergencies) is removed from the database.",
+        "App startup checks if the stored user ID still exists; if not, forces logout.",
+        "Admin can delete any user's account from the User Management panel with the same cascading effect."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Sidebar.tsx",
+          "operation": "create",
+          "description": "Create sidebar component for all role dashboards with navigation links (role-specific pages), Log Out button, and Delete Account button. Log Out clears localStorage session and redirects to login. Delete Account shows confirmation dialog, then calls backend delete account capability, clears session, and redirects to login. Use shadcn/ui Button, AlertDialog, and NavigationMenu components."
+        },
+        {
+          "path": "frontend/src/hooks/useAuth.ts",
+          "operation": "modify",
+          "description": "Add logout function to clear localStorage session and redirect to login. Add deleteAccount function to call backend delete capability, clear session, and redirect. On app mount (via useEffect), verify stored user ID still exists in backend by calling a backend validation capability; if user not found, auto-clear localStorage and redirect to login (ghost session cleanup)."
+        },
+        {
+          "path": "frontend/src/pages/AdminUserManagementPage.tsx",
+          "operation": "modify",
+          "description": "In user list table, add 'Delete' button for each user. On click, show confirmation dialog and call backend delete user capability with the target user ID. Refresh user list after successful deletion. Ensure cascading deletion is handled by backend."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "On app mount, call useAuth hook to perform ghost session check. If session is invalid, clear and redirect to login before rendering protected routes."
+        }
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "summary": "Apply clean, modern, campus-themed design with deep teal/navy palette, responsive layout, consistent iconography, and smooth transitions using Framer Motion",
+      "acceptanceCriteria": [
+        "All pages use a consistent color palette and typography system.",
+        "Layout is responsive and usable on both desktop and mobile screen sizes.",
+        "Status badges (Registered, In Progress, Resolved) use distinct, accessible colors.",
+        "Priority indicators (High, Medium, Low) are visually distinct.",
+        "Page transitions and modal animations use Framer Motion.",
+        "No blue-purple color combinations are used."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Define global CSS variables for campus-themed color palette: deep teal (primary), navy (secondary), warm accent colors (e.g., coral, gold), neutral grays, and semantic colors (success green, warning yellow, danger red). Avoid blue-purple combinations. Set base typography (font family, sizes, weights) for clean modern look. Include styles for status badges (Registered=blue, In Progress=yellow, Resolved=green) and priority indicators (High=red, Medium=orange, Low=green). Ensure all colors meet WCAG accessibility contrast requirements."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Extend Tailwind theme with custom colors matching the campus palette (teal, navy, warm accents), custom font families, and responsive breakpoints. Define custom animations for pulsing (emergency button) and flashing (emergency overlay). Ensure configuration supports shadcn/ui component theming."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "create",
+          "description": "Create layout wrapper component with AppHeader and Sidebar integrated. Ensure responsive behavior: sidebar collapses to hamburger menu on mobile, main content area adjusts. Use card-based layouts with consistent spacing. Use Framer Motion for page transition animations (fade-in on route change). Apply to all dashboard pages."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wrap all dashboard routes with Layout component. Add Framer Motion AnimatePresence for route transitions. Ensure login and register pages use alternative layout without sidebar."
+        }
+      ]
+    }
+  ]
+}

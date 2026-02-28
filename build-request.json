@@ -1,0 +1,330 @@
+{
+  "kind": "build_request",
+  "title": "Campus Complaint Management System – CampusVoice AI (Initial Build)",
+  "projectName": "CampusVoice AI",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Implement role-based authentication with four roles: Student, Staff, HOD, and Admin. Each role has distinct permissions: Students submit and track their own complaints; Staff view and update complaints in their department; HODs view all complaints in their department; Admins view and manage all complaints system-wide. Sensitive complaints (ragging, harassment) are only visible to authorized Admin and the relevant HOD. Include persistent login via localStorage so sessions survive page refresh until explicit logout or account deletion.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Role-based access control",
+          "Sensitive complaints visible only to authorized users",
+          "Student → Submit & track own complaints",
+          "Staff → View & update complaints assigned to their department",
+          "HOD → View ALL complaints of their department",
+          "Admin → View and manage all complaints"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Registration form supports all four roles with appropriate field options.",
+        "Login authenticates by username/password and stores session in localStorage.",
+        "Session persists on page refresh until logout or deletion.",
+        "Students cannot access HOD, Staff, or Admin dashboards.",
+        "Staff and HOD see only complaints belonging to their department.",
+        "Admin can see all complaints regardless of department.",
+        "Sensitive complaint categories are hidden from Staff and visible only to HOD and Admin."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement complaint registration allowing students to submit complaints with: text description, multiple photo uploads, multiple video uploads, and multiple voice note uploads. Include the following complaint categories: Faculty Issues, Internal Marks / Grading Issues, Exam & Hall Ticket Issues, Attendance Problems, Assignment / Submission Issues, Timetable Problems, Classroom Maintenance, Electricity / Fan / AC Issues, Water Supply Problems, Washroom Maintenance, WiFi / Internet Issues, Library Related Issues, Laboratory Equipment Issues, Hostel Room Maintenance, Food Quality Issues, Cleanliness Issues, Water Problems in Hostel, Mess Timing Issues, Website Login Problems, Portal Errors, ID Card Issues, Online Fee Payment Issues, Ragging Complaint, Harassment Complaint, Security Issues, Misbehavior Complaint, Scholarship Issues, Fee Payment Problems, Refund Related Issues, Bus Timing Issues, Driver Behavior Complaint, Route Problems, Suggestion / Feedback, Other Complaints. Priority levels: High, Medium, Low. Auto-calculate resolution deadline based on priority. Generate a unique Complaint ID for each submission. Allow multiple complaints per student.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Complaint Registration",
+          "Text",
+          "Photo upload",
+          "Video upload",
+          "Voice upload",
+          "Multiple complaints submission allowed",
+          "Complaint Priority"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Complaint form contains all required fields including text, category, priority, and media upload.",
+        "Multiple photos, videos, and voice notes can be added and previewed before submission.",
+        "Each submitted complaint receives a unique Complaint ID.",
+        "Deadline is automatically computed and displayed based on priority (e.g., High=1 day, Medium=3 days, Low=7 days).",
+        "All 34 categories are available in the dropdown.",
+        "Submitted complaints appear in the student's tracking view."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Implement an Anonymous Complaint Mode. Students can opt to hide their identity when submitting a complaint. The student's identity must not be revealed to Staff or HOD. Admins can see the true identity if required. Anonymous complaints are still routed to and visible to the relevant HOD without revealing the student's name or ID.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Anonymous Complaint Mode",
+          "Option to hide student ID",
+          "Identity visible only to authorized admin",
+          "Anonymous complaints still visible to respective HOD without revealing student identity"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A toggle or checkbox in the complaint form enables anonymous submission.",
+        "In HOD and Staff views, anonymous complaints display a placeholder instead of the student's name.",
+        "Admin view reveals the actual student identity for anonymous complaints.",
+        "Anonymous complaints are still assigned and routed to the correct department."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Integrate Gemini AI for the following features: (1) Automatically detect complaint category from the text description using NLP; (2) Auto-assign the complaint to the correct department based on the detected category; (3) Predict the number of days required to resolve the complaint; (4) Detect issues from image uploads (e.g., water leakage detection); (5) Provide a smart AI chatbot for complaint guidance, status tracking help, and FAQs with voice assistant (text-to-speech) capability for chatbot responses. All Gemini AI calls must be made from the frontend using the platform-injected API key.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "AI-Based Features",
+          "Automatically detect complaint category using AI (NLP)",
+          "Auto-assign complaint to correct department",
+          "Predict number of days required to resolve",
+          "Auto-detect issues from image uploads",
+          "Smart chatbot"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When a student types a complaint description, AI suggests a category and priority automatically.",
+        "Complaint is auto-assigned to the matching department.",
+        "Resolution prediction in days is displayed to the student after AI analysis.",
+        "Uploading an image triggers AI analysis to identify visible issues.",
+        "An AI chatbot widget is accessible from the student dashboard.",
+        "Chatbot responses can be read aloud via a voice assistant (TTS) button."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Implement a complaint tracking system. Each complaint has a status: Registered, In Progress, or Resolved. Students can view the full history and status of all their complaints. The system must support PDF-format report generation for complaint history. Provide an analytics and visualization dashboard (bar charts, pie charts) showing complaints by category, resolution status distribution, and department-wise statistics.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Complaint Tracking System",
+          "Track status",
+          "Complaint history",
+          "Report generation (PDF format)",
+          "Analytics and visualization dashboard"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Students can view all their complaints with current status and history.",
+        "Status transitions (Registered → In Progress → Resolved) are visible.",
+        "A 'Download Report' option exports complaint history as a PDF or JSON file.",
+        "Admin dashboard shows bar chart of complaints by category and pie chart by status.",
+        "Department-wise complaint statistics are displayed in the Admin analytics panel."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Implement an in-app and email notification system. Send email notifications via Nodemailer to students when their complaint status changes. Trigger notifications on: complaint registration, status update, and resolution. HODs must receive a notification (in-app alert) when a new complaint is submitted to their department. Emergency alerts must be broadcast in real-time to Admin and relevant HOD via WebSockets (Socket.io) with a full-screen visual overlay and audible siren using the Web Audio API.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Notification System",
+          "Email notifications",
+          "HOD receives notification for complaints related to their department",
+          "Notifications on: Registration, Status update, Resolution"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Students receive an email when their complaint status changes.",
+        "HOD receives an in-app notification when a new complaint in their department is submitted.",
+        "Admin receives an in-app notification for all new complaints.",
+        "Emergency alert is broadcast in real-time to Admin and the relevant HOD.",
+        "Emergency alert shows a full-screen red overlay with student name and location.",
+        "A professional-grade audible siren plays on the HOD/Admin device upon receiving an emergency alert."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Build Admin and HOD dashboards. Admin Dashboard: view all complaints, filter by department, priority, and date, view performance analytics (resolution rate chart, department-wise statistics), manage users (view list of all users, delete accounts, bulk purge by role), manage emergency logs (view and delete), and run AI predictive analysis. HOD Dashboard: view only complaints for their department, monitor staff performance, escalate high-priority complaints, view department resolution statistics.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Admin Dashboard",
+          "HOD Dashboard",
+          "View all complaints",
+          "Filter by Department, Priority, Date",
+          "Performance analytics",
+          "View only complaints related to their department",
+          "Escalate high-priority complaints"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin sees all complaints and can filter by department, priority, and date.",
+        "Admin panel includes resolution rate chart and department-wise complaint statistics.",
+        "Admin can delete individual user accounts or bulk purge all accounts of a specific role.",
+        "Admin can clear emergency logs.",
+        "Admin can run AI predictive analysis and view results in the panel.",
+        "HOD dashboard shows only complaints for their specific department.",
+        "HOD can escalate high-priority complaints.",
+        "HOD sees resolution statistics for their department."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Implement a feedback and rating system. After a complaint is resolved, students can rate the resolution quality (numeric or star rating) and provide text feedback. Ratings and feedback are visible to Admin and the relevant HOD.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Feedback & Rating",
+          "Students can rate resolution",
+          "Provide text feedback",
+          "Ratings visible to Admin and HOD"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A rating input and text feedback field appear for complaints in 'Resolved' status.",
+        "Students can submit a rating and optional text comment.",
+        "Admin and HOD can view submitted ratings and feedback in the complaint detail view."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Implement an Emergency Complaint Button. The button must be prominently visible in the header for logged-in students. Clicking it plays a short confirmation beep for the student using the Web Audio API. It sends an instant real-time alert via Socket.io to all Admins and the HOD of the student's department. Authorities receive a full-screen flashing red visual overlay showing the student's name and reported location, plus an audible professional 'Whoop' siren for 5 seconds generated via Web Audio API.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Emergency Complaint Button",
+          "Quick emergency complaint option",
+          "Instant alert to Admin and respective HOD"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A pulsing red Emergency button is visible in the app header for students.",
+        "Clicking triggers an immediate confirmation beep on the student's device.",
+        "Admin receives the real-time emergency overlay regardless of department.",
+        "Only the HOD of the student's department receives the overlay, not other HODs.",
+        "Overlay includes student name, location, and an Acknowledge/Dismiss button.",
+        "Audible siren plays automatically on the receiving Admin/HOD device.",
+        "Emergency events are logged in the database with timestamp and student info."
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Design and seed the backend database (SQLite) with the following tables: Users (id, username, password_hash, email, role, department_id), Departments (id, name), Complaints (id, unique_complaint_id, student_id, department_id, category, description, priority, status, is_anonymous, deadline, created_at, updated_at), Complaint_Media (id, complaint_id, media_type, data), Notifications (id, user_id, message, is_read, created_at), Feedback (id, complaint_id, rating, comment, created_at), Emergencies (id, student_id, location, created_at). Seed the Departments table with all UG and PG academic programs listed in the conversation. Implement cascading deletion so that deleting a user permanently removes all their complaints, media, and emergency logs.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Database Structure",
+          "Users",
+          "Departments",
+          "Complaints",
+          "Complaint Media",
+          "Notifications",
+          "Feedback",
+          "department-based filtering logic"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All seven tables are created on server startup if they do not exist.",
+        "Departments table is pre-seeded with all UG/PG programs (CS, BCA, IT, Data Science, Biotechnology, Physics, Commerce, Arts, etc.).",
+        "Deleting a user cascades to remove all their complaints, media files, and emergency logs.",
+        "department_id foreign key correctly restricts HOD/Staff data access.",
+        "Complaint unique_complaint_id is auto-generated on insertion."
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Implement logout and account deletion. Add a Log Out button in the sidebar that clears localStorage session and redirects to the login screen. Add a Delete Account button in the sidebar and dashboard that, after a confirmation prompt, permanently deletes the user's account and all associated data (complaints, media, emergency logs) from the database, clears the session, and redirects to login. On app startup, verify the stored session user still exists in the database; if not, auto-clear the ghost session and redirect to login.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "add log out and delete the account option",
+          "once the account login to the site it always login until the account is log out or delete",
+          "if the delete button is click the account want to be permanently deleted"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Log Out button is visible in the sidebar for all roles.",
+        "Clicking Log Out clears localStorage and returns to the login screen.",
+        "Delete Account button is visible in the sidebar and on the dashboard.",
+        "A confirmation dialog warns that deletion is permanent before proceeding.",
+        "After deletion, all user data (complaints, media, emergencies) is removed from the database.",
+        "App startup checks if the stored user ID still exists; if not, forces logout.",
+        "Admin can delete any user's account from the User Management panel with the same cascading effect."
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Apply a clean, modern, campus-themed visual design across the entire application. Use a color palette inspired by academic professionalism (e.g., deep teal or navy with warm accent colors, avoiding blue-purple combinations). Use clear typography, card-based layouts, and smooth transitions (Framer Motion). Ensure the UI is fully responsive for desktop and mobile. Maintain consistent iconography, status badges, and priority indicators throughout all dashboards (Student, Staff, HOD, Admin).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Responsive UI design",
+          "Clean modern interface"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All pages use a consistent color palette and typography system.",
+        "Layout is responsive and usable on both desktop and mobile screen sizes.",
+        "Status badges (Registered, In Progress, Resolved) use distinct, accessible colors.",
+        "Priority indicators (High, Medium, Low) are visually distinct.",
+        "Page transitions and modal animations use Framer Motion.",
+        "No blue-purple color combinations are used."
+      ]
+    }
+  ],
+  "constraints": [
+    "All Gemini AI API calls must be made from the frontend using the platform-injected API key; no AI calls from the backend.",
+    "Do not integrate Google OAuth or any third-party authentication — use username/password only.",
+    "Do not use external email delivery services other than Nodemailer with environment-configured SMTP credentials.",
+    "All media (photos, videos, voice notes) must be stored in the SQLite database as binary/base64 data, not on an external file system.",
+    "Do not use WebSockets libraries other than Socket.io.",
+    "All backend logic must remain in a single Express server file."
+  ],
+  "nonGoals": [
+    "Google Sign-In or any OAuth-based login.",
+    "SMS notifications or push notifications via external services.",
+    "QR Code based complaint registration.",
+    "GPS or map-based geo-tagging.",
+    "External database (PostgreSQL, MySQL, MongoDB) — SQLite only.",
+    "Separate microservices or multiple backend processes.",
+    "Integration with any external LLM API other than Gemini via platform-injected key."
+  ],
+  "imageRequirements": {
+    "required": [
+      "University campus aerial illustration with a clean modern look, warm teal and navy tones, suitable as a login screen background (campus-bg.dim_1920x1080.png)",
+      "CampusVoice AI logo mark — a minimalist shield with a speech bubble and academic mortarboard icon in teal and white (campusvoice-logo.dim_256x256.png)",
+      "Emergency alert icon — bold red siren/alarm bell illustration on transparent background (emergency-icon.dim_128x128.png)"
+    ],
+    "edits": []
+  }
+}

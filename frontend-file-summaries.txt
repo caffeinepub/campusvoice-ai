@@ -1,0 +1,14 @@
+{
+  "frontend/src/lib/geminiService.ts": "Gemini AI service using direct REST API fetch calls (no SDK dependency) for complaint text analysis, image analysis, chatbot responses, and predictive analytics. Exports typed functions and interfaces for all AI features.",
+  "frontend/src/App.tsx": "Root application component that wraps everything in AppProvider, handles authentication state (landing page vs. authenticated shell), shows profile setup modal for new users, renders the responsive sidebar+header layout, and routes between all dashboard views based on current state.",
+  "frontend/src/pages/DashboardPage.tsx": "Role-aware dashboard showing greeting, stats cards (total/pending/resolved/high-priority), quick action buttons, and a recent complaints preview; adapts content for Student, Staff, HOD, and Admin roles.",
+  "frontend/src/pages/SubmitComplaintPage.tsx": "Complaint submission form with AI-powered auto-categorization, category/priority selection, media uploads, anonymous mode toggle, deadline display, and success confirmation screen.",
+  "frontend/src/pages/TrackComplaintsPage.tsx": "Student complaint tracking page with search/filter controls, complaint cards, CSV export, and a detail dialog showing media attachments, AI predictions, and feedback form for resolved complaints.",
+  "frontend/src/pages/ChatbotPage.tsx": "Simple page wrapper for the AI chatbot feature, directing users to the floating chat widget.",
+  "frontend/src/pages/ComplaintsListPage.tsx": "Shared complaints list page for Admin/HOD/Staff with role-based filtering (department, sensitive categories), status update actions, search/filter controls, CSV export, and a detail dialog with feedback display.",
+  "frontend/src/pages/AnalyticsPage.tsx": "Analytics dashboard with recharts bar/pie charts for category distribution, status distribution, and priority breakdown, plus AI predictive analysis powered by Gemini and JSON export.",
+  "frontend/src/pages/UserManagementPage.tsx": "Admin user management page explaining ICP-based user authentication and on-chain profile storage.",
+  "frontend/src/pages/EmergencyLogsPage.tsx": "Emergency alert log viewer for Admin showing all recorded alerts with acknowledge/clear actions and status indicators.",
+  "frontend/tailwind.config.js": "Tailwind CSS configuration with campus teal/navy design system, custom fonts (Inter/Outfit), and all color tokens updated to include `/ <alpha-value>` interpolation throughout — enabling opacity modifiers like `/80`, `/50`, `/70` on every custom color token.",
+  "frontend/src/index.css": "Global styles with OKLCH color system, campus design tokens, component classes for status badges, priority indicators, sidebar navigation, and page animations. The `.glass-card` class now uses plain CSS properties instead of `@apply` with opacity modifiers to avoid Tailwind v3 limitations with custom CSS variable colors."
+}

@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* Campus Teal/Navy palette */
+    --background: 0.97 0.008 220;
+    --foreground: 0.18 0.04 240;
+
+    --card: 1 0 0;
+    --card-foreground: 0.18 0.04 240;
+
+    --popover: 1 0 0;
+    --popover-foreground: 0.18 0.04 240;
+
+    /* Deep teal primary */
+    --primary: 0.42 0.12 195;
+    --primary-foreground: 0.98 0 0;
+
+    /* Navy secondary */
+    --secondary: 0.94 0.015 220;
+    --secondary-foreground: 0.25 0.06 240;
+
+    --muted: 0.94 0.01 220;
+    --muted-foreground: 0.52 0.03 230;
+
+    /* Warm coral accent */
+    --accent: 0.94 0.015 220;
+    --accent-foreground: 0.25 0.06 240;
+
+    --destructive: 0.58 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+
+    --border: 0.88 0.02 220;
+    --input: 0.88 0.02 220;
+    --ring: 0.42 0.12 195;
+
+    /* Chart colors */
+    --chart-1: 0.42 0.12 195;
+    --chart-2: 0.62 0.16 160;
+    --chart-3: 0.72 0.18 55;
+    --chart-4: 0.65 0.2 25;
+    --chart-5: 0.55 0.15 280;
+
+    /* Sidebar */
+    --sidebar: 0.18 0.06 240;
+    --sidebar-foreground: 0.92 0.02 220;
+    --sidebar-primary: 0.55 0.14 195;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.25 0.06 240;
+    --sidebar-accent-foreground: 0.92 0.02 220;
+    --sidebar-border: 0.28 0.06 240;
+    --sidebar-ring: 0.55 0.14 195;
+
+    /* Semantic status colors */
+    --status-registered: 0.55 0.14 220;
+    --status-inprogress: 0.72 0.18 55;
+    --status-resolved: 0.62 0.16 145;
+
+    --priority-high: 0.58 0.22 25;
+    --priority-medium: 0.72 0.18 55;
+    --priority-low: 0.62 0.16 145;
+  }
+
+  .dark {
+    --background: 0.14 0.04 240;
+    --foreground: 0.92 0.02 220;
+
+    --card: 0.18 0.05 240;
+    --card-foreground: 0.92 0.02 220;
+
+    --popover: 0.22 0.05 240;
+    --popover-foreground: 0.92 0.02 220;
+
+    --primary: 0.55 0.14 195;
+    --primary-foreground: 0.98 0 0;
+
+    --secondary: 0.22 0.05 240;
+    --secondary-foreground: 0.92 0.02 220;
+
+    --muted: 0.22 0.05 240;
+    --muted-foreground: 0.62 0.04 230;
+
+    --accent: 0.28 0.06 240;
+    --accent-foreground: 0.92 0.02 220;
+
+    --destructive: 0.65 0.22 25;
+    --destructive-foreground: 0.98 0 0;
+
+    --border: 1 0 0 / 10%;
+    --input: 1 0 0 / 12%;
+    --ring: 0.55 0.14 195;
+
+    --chart-1: 0.55 0.14 195;
+    --chart-2: 0.65 0.16 160;
+    --chart-3: 0.75 0.18 55;
+    --chart-4: 0.68 0.2 25;
+    --chart-5: 0.6 0.15 280;
+
+    --sidebar: 0.12 0.04 240;
+    --sidebar-foreground: 0.92 0.02 220;
+    --sidebar-primary: 0.55 0.14 195;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.18 0.05 240;
+    --sidebar-accent-foreground: 0.92 0.02 220;
+    --sidebar-border: 1 0 0 / 10%;
+    --sidebar-ring: 0.55 0.14 195;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .status-badge-registered {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300;
+  }
+  .status-badge-inprogress {
+    @apply bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300;
+  }
+  .status-badge-resolved {
+    @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300;
+  }
+
+  .priority-high {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+  }
+  .priority-medium {
+    @apply bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300;
+  }
+  .priority-low {
+    @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300;
+  }
+
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150;
+    @apply text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent;
+  }
+  .sidebar-nav-item.active {
+    @apply bg-sidebar-primary text-sidebar-primary-foreground;
+  }
+
+  .glass-card {
+    @apply backdrop-blur-sm rounded-xl shadow-sm;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid oklch(var(--border) / 0.5);
+  }
+
+  .dark .glass-card {
+    background-color: oklch(var(--card) / 0.8);
+  }
+
+  .emergency-pulse {
+    animation: emergency-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes emergency-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+  }
+
+  .page-enter {
+    animation: page-enter 0.3s ease-out;
+  }
+
+  @keyframes page-enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

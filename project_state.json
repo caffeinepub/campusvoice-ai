@@ -1,120 +1,38 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Full-stack AI-powered Campus Complaint Management System called CampusVoice AI. Built with React/TypeScript frontend, Express/SQLite backend, Tailwind CSS, Framer Motion, Socket.io for real-time alerts, and Gemini AI integration. Features role-based access (Student, Staff, HOD, Admin), complaint submission with multimedia (photos/videos/voice), AI auto-categorization, anonymous complaints, emergency alert system with Web Audio API siren, persistent login via localStorage, complaint history/analytics/predictive analysis dashboard, email notifications via Nodemailer, and comprehensive delete/account management.",
-  "architectural_notes": [
-    "Frontend: React 19 + TypeScript + Tailwind CSS + Framer Motion; Backend: Express.js + SQLite (campus_voice.db); Real-time: Socket.io; AI: Gemini API called directly from frontend (not backend)",
-    "Gemini AI must be called from frontend only — server-side calls result in API key errors in this environment",
-    "Persistent login via localStorage; session verified against DB on startup to prevent ghost sessions",
-    "Emergency alert system uses Web Audio API oscillator (no external audio files) + Socket.io for real-time broadcast to HODs/Admins",
-    "Google OAuth was removed; authentication is username/password only with optional email for notifications",
-    "Cascading permanent deletion: deleting a user removes all their complaints, media, and emergency logs via DB transaction"
-  ],
+  "summary": "Campus Complaint Management System with role-based access, dashboards, and complaint flows. Includes permanent account deletion feature.",
+  "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- University campus aerial illustration with a clean modern look, warm teal and navy tones, suitable as a login screen background (campus-bg.dim_1920x1080.png)\n- CampusVoice AI logo mark — a minimalist shield with a speech bubble and academic mortarboard icon in teal and white (campusvoice-logo.dim_256x256.png)\n- Emergency alert icon — bold red siren/alarm bell illustration on transparent background (emergency-icon.dim_128x128.png)",
   "existing_features": [
     {
-      "id": "feature-implement-role-based-authentication-with-four-roles-student-staff-hod-and-admin-each-role-has-distinct-permissions-students-submit-and-track-their-own-complaints-staff-view-and-update-complaints-in-their-department-hods-view-all-complaints-in-their-department-admins-view-and-manage-all-complaints-system-wide-sensitive-complaints-ragging-harassment-are-only-visible-to-authorized-admin-and-the-relevant-hod-include-persistent-login-via-localstorage-so-sessions-survive-page-refresh-until-explicit-logout-or-account-deletion",
-      "title": "Implement role-based authentication with four roles: Student, Staff, HOD, and Admin. Each role has distinct permissions: Students submit and track their own complaints; Staff view and update complaints in their department; HODs view all complaints in their department; Admins view and manage all complaints system-wide. Sensitive complaints (ragging, harassment) are only visible to authorized Admin and the relevant HOD. Include persistent login via localStorage so sessions survive page refresh until explicit logout or account deletion.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-complaint-registration-allowing-students-to-submit-complaints-with-text-description-multiple-photo-uploads-multiple-video-uploads-and-multiple-voice-note-uploads-include-the-following-complaint-categories-faculty-issues-internal-marks-grading-issues-exam-hall-ticket-issues-attendance-problems-assignment-submission-issues-timetable-problems-classroom-maintenance-electricity-fan-ac-issues-water-supply-problems-washroom-maintenance-wifi-internet-issues-library-related-issues-laboratory-equipment-issues-hostel-room-maintenance-food-quality-issues-cleanliness-issues-water-problems-in-hostel-mess-timing-issues-website-login-problems-portal-errors-id-card-issues-online-fee-payment-issues-ragging-complaint-harassment-complaint-security-issues-misbehavior-complaint-scholarship-issues-fee-payment-problems-refund-related-issues-bus-timing-issues-driver-behavior-complaint-route-problems-suggestion-feedback-other-complaints-priority-levels-high-medium-low-auto-calculate-resolution-deadline-based-on-priority-generate-a-unique-complaint-id-for-each-submission-allow-multiple-complaints-per-student",
-      "title": "Implement complaint registration allowing students to submit complaints with: text description, multiple photo uploads, multiple video uploads, and multiple voice note uploads. Include the following complaint categories: Faculty Issues, Internal Marks / Grading Issues, Exam & Hall Ticket Issues, Attendance Problems, Assignment / Submission Issues, Timetable Problems, Classroom Maintenance, Electricity / Fan / AC Issues, Water Supply Problems, Washroom Maintenance, WiFi / Internet Issues, Library Related Issues, Laboratory Equipment Issues, Hostel Room Maintenance, Food Quality Issues, Cleanliness Issues, Water Problems in Hostel, Mess Timing Issues, Website Login Problems, Portal Errors, ID Card Issues, Online Fee Payment Issues, Ragging Complaint, Harassment Complaint, Security Issues, Misbehavior Complaint, Scholarship Issues, Fee Payment Problems, Refund Related Issues, Bus Timing Issues, Driver Behavior Complaint, Route Problems, Suggestion / Feedback, Other Complaints. Priority levels: High, Medium, Low. Auto-calculate resolution deadline based on priority. Generate a unique Complaint ID for each submission. Allow multiple complaints per student.",
+      "id": "feature-add-a-delete-account-button-in-the-user-profile-settings-area-e-g-within-the-profile-menu-in-appheader-or-a-dedicated-settings-section-clicking-it-must-open-a-confirmation-dialog-warning-the-user-that-this-action-is-permanent-and-cannot-be-undone-on-confirmation-call-the-backend-deleteaccount-function-clear-all-local-storage-data-for-the-user-log-the-user-out-via-internet-identity-and-redirect-to-the-landing-page",
+      "title": "Add a 'Delete Account' button in the user profile/settings area (e.g., within the profile menu in AppHeader or a dedicated Settings section). Clicking it must open a confirmation dialog warning the user that this action is permanent and cannot be undone. On confirmation, call the backend `deleteAccount` function, clear all local storage data for the user, log the user out via Internet Identity, and redirect to the landing page.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-an-anonymous-complaint-mode-students-can-opt-to-hide-their-identity-when-submitting-a-complaint-the-student-s-identity-must-not-be-revealed-to-staff-or-hod-admins-can-see-the-true-identity-if-required-anonymous-complaints-are-still-routed-to-and-visible-to-the-relevant-hod-without-revealing-the-student-s-name-or-id",
-      "title": "Implement an Anonymous Complaint Mode. Students can opt to hide their identity when submitting a complaint. The student's identity must not be revealed to Staff or HOD. Admins can see the true identity if required. Anonymous complaints are still routed to and visible to the relevant HOD without revealing the student's name or ID.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-integrate-gemini-ai-for-the-following-features-1-automatically-detect-complaint-category-from-the-text-description-using-nlp-2-auto-assign-the-complaint-to-the-correct-department-based-on-the-detected-category-3-predict-the-number-of-days-required-to-resolve-the-complaint-4-detect-issues-from-image-uploads-e-g-water-leakage-detection-5-provide-a-smart-ai-chatbot-for-complaint-guidance-status-tracking-help-and-faqs-with-voice-assistant-text-to-speech-capability-for-chatbot-responses-all-gemini-ai-calls-must-be-made-from-the-frontend-using-the-platform-injected-api-key",
-      "title": "Integrate Gemini AI for the following features: (1) Automatically detect complaint category from the text description using NLP; (2) Auto-assign the complaint to the correct department based on the detected category; (3) Predict the number of days required to resolve the complaint; (4) Detect issues from image uploads (e.g., water leakage detection); (5) Provide a smart AI chatbot for complaint guidance, status tracking help, and FAQs with voice assistant (text-to-speech) capability for chatbot responses. All Gemini AI calls must be made from the frontend using the platform-injected API key.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-a-complaint-tracking-system-each-complaint-has-a-status-registered-in-progress-or-resolved-students-can-view-the-full-history-and-status-of-all-their-complaints-the-system-must-support-pdf-format-report-generation-for-complaint-history-provide-an-analytics-and-visualization-dashboard-bar-charts-pie-charts-showing-complaints-by-category-resolution-status-distribution-and-department-wise-statistics",
-      "title": "Implement a complaint tracking system. Each complaint has a status: Registered, In Progress, or Resolved. Students can view the full history and status of all their complaints. The system must support PDF-format report generation for complaint history. Provide an analytics and visualization dashboard (bar charts, pie charts) showing complaints by category, resolution status distribution, and department-wise statistics.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-an-in-app-and-email-notification-system-send-email-notifications-via-nodemailer-to-students-when-their-complaint-status-changes-trigger-notifications-on-complaint-registration-status-update-and-resolution-hods-must-receive-a-notification-in-app-alert-when-a-new-complaint-is-submitted-to-their-department-emergency-alerts-must-be-broadcast-in-real-time-to-admin-and-relevant-hod-via-websockets-socket-io-with-a-full-screen-visual-overlay-and-audible-siren-using-the-web-audio-api",
-      "title": "Implement an in-app and email notification system. Send email notifications via Nodemailer to students when their complaint status changes. Trigger notifications on: complaint registration, status update, and resolution. HODs must receive a notification (in-app alert) when a new complaint is submitted to their department. Emergency alerts must be broadcast in real-time to Admin and relevant HOD via WebSockets (Socket.io) with a full-screen visual overlay and audible siren using the Web Audio API.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-admin-and-hod-dashboards-admin-dashboard-view-all-complaints-filter-by-department-priority-and-date-view-performance-analytics-resolution-rate-chart-department-wise-statistics-manage-users-view-list-of-all-users-delete-accounts-bulk-purge-by-role-manage-emergency-logs-view-and-delete-and-run-ai-predictive-analysis-hod-dashboard-view-only-complaints-for-their-department-monitor-staff-performance-escalate-high-priority-complaints-view-department-resolution-statistics",
-      "title": "Build Admin and HOD dashboards. Admin Dashboard: view all complaints, filter by department, priority, and date, view performance analytics (resolution rate chart, department-wise statistics), manage users (view list of all users, delete accounts, bulk purge by role), manage emergency logs (view and delete), and run AI predictive analysis. HOD Dashboard: view only complaints for their department, monitor staff performance, escalate high-priority complaints, view department resolution statistics.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-a-feedback-and-rating-system-after-a-complaint-is-resolved-students-can-rate-the-resolution-quality-numeric-or-star-rating-and-provide-text-feedback-ratings-and-feedback-are-visible-to-admin-and-the-relevant-hod",
-      "title": "Implement a feedback and rating system. After a complaint is resolved, students can rate the resolution quality (numeric or star rating) and provide text feedback. Ratings and feedback are visible to Admin and the relevant HOD.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-an-emergency-complaint-button-the-button-must-be-prominently-visible-in-the-header-for-logged-in-students-clicking-it-plays-a-short-confirmation-beep-for-the-student-using-the-web-audio-api-it-sends-an-instant-real-time-alert-via-socket-io-to-all-admins-and-the-hod-of-the-student-s-department-authorities-receive-a-full-screen-flashing-red-visual-overlay-showing-the-student-s-name-and-reported-location-plus-an-audible-professional-whoop-siren-for-5-seconds-generated-via-web-audio-api",
-      "title": "Implement an Emergency Complaint Button. The button must be prominently visible in the header for logged-in students. Clicking it plays a short confirmation beep for the student using the Web Audio API. It sends an instant real-time alert via Socket.io to all Admins and the HOD of the student's department. Authorities receive a full-screen flashing red visual overlay showing the student's name and reported location, plus an audible professional 'Whoop' siren for 5 seconds generated via Web Audio API.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-logout-and-account-deletion-add-a-log-out-button-in-the-sidebar-that-clears-localstorage-session-and-redirects-to-the-login-screen-add-a-delete-account-button-in-the-sidebar-and-dashboard-that-after-a-confirmation-prompt-permanently-deletes-the-user-s-account-and-all-associated-data-complaints-media-emergency-logs-from-the-database-clears-the-session-and-redirects-to-login-on-app-startup-verify-the-stored-session-user-still-exists-in-the-database-if-not-auto-clear-the-ghost-session-and-redirect-to-login",
-      "title": "Implement logout and account deletion. Add a Log Out button in the sidebar that clears localStorage session and redirects to the login screen. Add a Delete Account button in the sidebar and dashboard that, after a confirmation prompt, permanently deletes the user's account and all associated data (complaints, media, emergency logs) from the database, clears the session, and redirects to login. On app startup, verify the stored session user still exists in the database; if not, auto-clear the ghost session and redirect to login.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-clean-modern-campus-themed-visual-design-across-the-entire-application-use-a-color-palette-inspired-by-academic-professionalism-e-g-deep-teal-or-navy-with-warm-accent-colors-avoiding-blue-purple-combinations-use-clear-typography-card-based-layouts-and-smooth-transitions-framer-motion-ensure-the-ui-is-fully-responsive-for-desktop-and-mobile-maintain-consistent-iconography-status-badges-and-priority-indicators-throughout-all-dashboards-student-staff-hod-admin",
-      "title": "Apply a clean, modern, campus-themed visual design across the entire application. Use a color palette inspired by academic professionalism (e.g., deep teal or navy with warm accent colors, avoiding blue-purple combinations). Use clear typography, card-based layouts, and smooth transitions (Framer Motion). Ensure the UI is fully responsive for desktop and mobile. Maintain consistent iconography, status badges, and priority indicators throughout all dashboards (Student, Staff, HOD, Admin).",
-      "reqIds": [
-        "REQ-12"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
-      "id": "AR-10",
-      "summary": "Design and seed the backend database (SQLite) with the following tables: Users (id, username, password_hash, email, role, department_id), Departments (id, name), Complaints (id, unique_complaint_id, student_id, department_id, category, description, priority, status, is_anonymous, deadline, created_at, updated_at), Complaint_Media (id, complaint_id, media_type, data), Notifications (id, user_id, message, is_read, created_at), Feedback (id, complaint_id, rating, comment, created_at), Emergencies (id, student_id, location, created_at). Seed the Departments table with all UG and PG academic programs listed in the conversation. Implement cascading deletion so that deleting a user permanently removes all their complaints, media, and emergency logs.",
+      "id": "AR-1",
+      "summary": "Add a delete key/button to permanently delete user accounts",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Add a `deleteAccount` backend function that permanently removes the authenticated user's profile from the canister state. The function must verify the caller's identity before deletion and return a success/error result.",
       "reqIds": [
-        "REQ-10"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "CampusVoice AI",
+  "projectName": "Campus Complaint Management System",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

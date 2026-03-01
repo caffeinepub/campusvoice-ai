@@ -42,6 +42,21 @@ export function useSaveCallerUserProfile() {
   });
 }
 
+export function useDeleteAccount() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.deleteAccount();
+    },
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+}
+
 // ─── Complaints ──────────────────────────────────────────────────────────────
 
 export function useGetAllComplaints() {

@@ -38,6 +38,7 @@ export interface _SERVICE {
    * / user cannot file a complaint under someone else's identity.
    */
   'createComplaint' : ActorMethod<[string, string, Priority], undefined>,
+  'deleteAccount' : ActorMethod<[], string>,
   /**
    * / Admin-only: view every complaint in the system.
    */

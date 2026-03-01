@@ -126,6 +126,7 @@ export interface backendInterface {
      * / user cannot file a complaint under someone else's identity.
      */
     createComplaint(id: string, description: string, priority: Priority): Promise<void>;
+    deleteAccount(): Promise<string>;
     /**
      * / Admin-only: view every complaint in the system.
      */
@@ -195,6 +196,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.createComplaint(arg0, arg1, to_candid_Priority_n3(this._uploadFile, this._downloadFile, arg2));
+            return result;
+        }
+    }
+    async deleteAccount(): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteAccount();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteAccount();
             return result;
         }
     }

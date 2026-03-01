@@ -43,6 +43,7 @@ export interface backendInterface {
      * / user cannot file a complaint under someone else's identity.
      */
     createComplaint(id: string, description: string, priority: Priority): Promise<void>;
+    deleteAccount(): Promise<string>;
     /**
      * / Admin-only: view every complaint in the system.
      */

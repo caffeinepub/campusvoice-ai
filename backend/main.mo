@@ -3,9 +3,9 @@ import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Map "mo:core/Map";
 import Int "mo:core/Int";
-import Order "mo:core/Order";
 import List "mo:core/List";
 import Iter "mo:core/Iter";
+import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Option "mo:core/Option";
 import Principal "mo:core/Principal";
@@ -59,6 +59,21 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
+  };
+
+  public shared ({ caller }) func deleteAccount() : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete accounts");
+    };
+    switch (userProfiles.get(caller)) {
+      case (null) {
+        "Account already deleted or never existed";
+      };
+      case (?_) {
+        userProfiles.remove(caller);
+        "Account deleted successfully";
+      };
+    };
   };
 
   // ── Complaint endpoints ──────────────────────────────────────────────────────

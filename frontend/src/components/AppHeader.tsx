@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Bell, LogOut, User, AlertTriangle, ChevronDown, Menu, X } from 'lucide-react';
+import { Bell, LogOut, User, AlertTriangle, ChevronDown, Menu, X, Trash2 } from 'lucide-react';
 import { playConfirmationBeep, playEmergencySiren } from '../lib/audioService';
 import {
   addEmergency,
@@ -29,7 +29,7 @@ import {
   type EmergencyAlert,
 } from '../lib/localComplaintStore';
 import { CAMPUS_ROLE_COLORS, CAMPUS_ROLE_LABELS } from '../constants/appRoles';
-import { formatTimestamp } from '../lib/complaintHelpers';
+import DeleteAccountDialog from './DeleteAccountDialog';
 
 interface AppHeaderProps {
   onMenuToggle?: () => void;
@@ -45,6 +45,7 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
   const [location, setLocation] = useState('');
   const [emergencySent, setEmergencySent] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
   const handleLogout = async () => {
     await clear();
@@ -74,7 +75,6 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
     playConfirmationBeep();
 
     // Simulate alert to HOD/Admin (in real app, this would be via WebSocket)
-    // For demo, we trigger the overlay for the current user if they're HOD/Admin
     if (campusRole === 'hod' || campusRole === 'admin') {
       setTimeout(() => {
         setActiveEmergency(alert);
@@ -214,6 +214,14 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
               <LogOut className="w-4 h-4" />
               Sign Out
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive gap-2 cursor-pointer"
+              onClick={() => setDeleteAccountOpen(true)}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Account
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -271,6 +279,12 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Account Dialog */}
+      <DeleteAccountDialog
+        open={deleteAccountOpen}
+        onOpenChange={setDeleteAccountOpen}
+      />
     </header>
   );
 }

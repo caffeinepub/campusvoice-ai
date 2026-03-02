@@ -56,6 +56,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(Complaint)],
       ['query'],
     ),
+  'getSortedComplaints' : IDL.Func([], [IDL.Vec(Complaint)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -63,7 +64,11 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'updateComplaintStatus' : IDL.Func([IDL.Text, ComplaintStatus], [], []),
+  'updateDepartmentComplaintStatus' : IDL.Func(
+      [IDL.Text, ComplaintStatus],
+      [],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -114,6 +119,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Complaint)],
         ['query'],
       ),
+    'getSortedComplaints' : IDL.Func([], [IDL.Vec(Complaint)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -121,7 +127,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'updateComplaintStatus' : IDL.Func([IDL.Text, ComplaintStatus], [], []),
+    'updateDepartmentComplaintStatus' : IDL.Func(
+        [IDL.Text, ComplaintStatus],
+        [],
+        [],
+      ),
   });
 };
 

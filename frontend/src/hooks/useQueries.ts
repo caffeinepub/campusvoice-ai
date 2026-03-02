@@ -133,7 +133,7 @@ export function useUpdateComplaintStatus() {
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: ComplaintStatus }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateComplaintStatus(id, status);
+      return actor.updateDepartmentComplaintStatus(id, status);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myComplaints'] });
@@ -141,6 +141,11 @@ export function useUpdateComplaintStatus() {
       queryClient.invalidateQueries({ queryKey: ['complaintsByStatus'] });
     },
   });
+}
+
+// Alias for semantic clarity in staff/HOD/admin contexts
+export function useUpdateDepartmentComplaintStatus() {
+  return useUpdateComplaintStatus();
 }
 
 export function useIsAdmin() {

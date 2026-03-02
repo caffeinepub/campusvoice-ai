@@ -63,11 +63,18 @@ export interface backendInterface {
      * / Admins may pass any principal; regular users may only query themselves.
      */
     getComplaintsByStudent(student: Principal): Promise<Array<Complaint>>;
+    /**
+     * / Sort complaints by status and creation time, not just time.
+     */
+    getSortedComplaints(): Promise<Array<Complaint>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     /**
-     * / Admins can update any complaint status; a student can only update their own.
+     * / Admins, HODs, and staff (all authenticated #user and #admin role holders)
+     * / can update complaint statuses for complaints in their department.
+     * / Guests are excluded. Only authenticated users (#user) and admins (#admin)
+     * / are permitted, as the access control module supports #admin, #user, #guest.
      */
-    updateComplaintStatus(id: string, newStatus: ComplaintStatus): Promise<void>;
+    updateDepartmentComplaintStatus(id: string, newStatus: ComplaintStatus): Promise<void>;
 }

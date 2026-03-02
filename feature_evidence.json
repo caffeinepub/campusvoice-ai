@@ -2,11 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-sign-out-logout-functionality-in-both-appheader-tsx-and-appsidebar-tsx-so-that-clicking-the-logout-sign-out-option-correctly-terminates-the-user-session-clears-relevant-app-state-and-redirects-the-user-to-the-landing-page-without-errors",
-      "featureTitle": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
+      "featureId": "feature-add-a-dedicated-admin-login-flow-page-similar-to-studentloginflow-and-hodloginflow-that-stores-admin-as-the-pending-role-in-localstorage-before-initiating-internet-identity-authentication-and-add-an-admin-role-card-on-the-landingpage-alongside-the-existing-student-and-hod-staff-cards",
+      "featureTitle": "Add a dedicated Admin login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'admin' as the pending role in localStorage before initiating Internet Identity authentication, and add an Admin role card on the LandingPage alongside the existing Student and HOD/Staff cards.",
       "files": [
-        "frontend/src/components/AppHeader.tsx",
-        "frontend/src/components/AppSidebar.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/AdminLoginFlow.tsx",
+        "frontend/src/pages/LandingPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -22,10 +23,34 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-deleteaccountdialog-tsx-so-that-after-account-deletion-it-only-clears-the-user-s-own-profile-related-localstorage-keys-and-does-not-delete-complaint-metadata-stored-in-localcomplaintstore-for-complaints-submitted-by-that-user",
-      "featureTitle": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+      "featureId": "feature-add-a-dedicated-staff-login-flow-page-similar-to-studentloginflow-and-hodloginflow-that-stores-staff-as-the-pending-role-in-localstorage-before-initiating-internet-identity-authentication-and-ensure-the-landingpage-includes-a-staff-role-card-entry-point",
+      "featureTitle": "Add a dedicated Staff login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'staff' as the pending role in localStorage before initiating Internet Identity authentication, and ensure the LandingPage includes a Staff role card entry point.",
       "files": [
-        "frontend/src/components/DeleteAccountDialog.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/StaffLoginFlow.tsx",
+        "frontend/src/pages/LandingPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-build-a-full-admin-portal-with-a-dedicated-dashboard-view-showing-system-wide-complaint-statistics-total-pending-resolved-high-priority-across-all-departments-access-to-full-complaint-list-management-view-update-status-priority-for-all-complaints-user-management-page-emergency-logs-and-analytics-the-admin-sidebar-navigation-should-surface-all-admin-specific-pages",
+      "featureTitle": "Build a full Admin Portal with a dedicated dashboard view showing system-wide complaint statistics (total, pending, resolved, high-priority across all departments), access to full complaint list management (view, update status/priority for all complaints), user management page, emergency logs, and analytics. The admin sidebar navigation should surface all admin-specific pages.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/AppSidebar.tsx",
+        "frontend/src/pages/ComplaintsListPage.tsx",
+        "frontend/src/pages/DashboardPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -37,6 +62,49 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-build-a-full-staff-portal-with-a-dedicated-dashboard-view-showing-complaints-relevant-to-the-staff-member-s-department-ability-to-view-and-update-complaint-status-for-complaints-in-their-department-and-access-to-analytics-filtered-by-their-department-the-staff-sidebar-navigation-should-surface-all-staff-specific-pages",
+      "featureTitle": "Build a full Staff Portal with a dedicated dashboard view showing complaints relevant to the staff member's department, ability to view and update complaint status for complaints in their department, and access to analytics filtered by their department. The staff sidebar navigation should surface all staff-specific pages.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/AppSidebar.tsx",
+        "frontend/src/pages/AnalyticsPage.tsx",
+        "frontend/src/pages/ComplaintsListPage.tsx",
+        "frontend/src/pages/DashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-profilesetupmodal-to-allow-admin-and-staff-as-selectable-roles-during-profile-setup-ensuring-the-role-is-correctly-saved-and-encoded-in-the-backend-profile-via-the-pipe-delimited-format-used-in-userprofilehelpers",
+      "featureTitle": "Update the ProfileSetupModal to allow 'admin' and 'staff' as selectable roles during profile setup, ensuring the role is correctly saved and encoded in the backend profile via the pipe-delimited format used in userProfileHelpers.",
+      "files": [
+        "frontend/src/components/ProfileSetupModal.tsx",
+        "frontend/src/lib/userProfileHelpers.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

@@ -1,27 +1,48 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project involves a complaints management system with HOD and admin alert notifications, sign-out functionality, and account/complaint management.",
+  "summary": "Web application with admin and staff portals",
   "architectural_notes": [],
-  "known_issues": [
-    "Sign out option has a bug that needs fixing",
-    "Complaints are incorrectly deleted when associated account is removed"
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-fix-the-sign-out-logout-functionality-in-both-appheader-tsx-and-appsidebar-tsx-so-that-clicking-the-logout-sign-out-option-correctly-terminates-the-user-session-clears-relevant-app-state-and-redirects-the-user-to-the-landing-page-without-errors",
-      "title": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
+      "id": "feature-add-a-dedicated-admin-login-flow-page-similar-to-studentloginflow-and-hodloginflow-that-stores-admin-as-the-pending-role-in-localstorage-before-initiating-internet-identity-authentication-and-add-an-admin-role-card-on-the-landingpage-alongside-the-existing-student-and-hod-staff-cards",
+      "title": "Add a dedicated Admin login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'admin' as the pending role in localStorage before initiating Internet Identity authentication, and add an Admin role card on the LandingPage alongside the existing Student and HOD/Staff cards.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-deleteaccountdialog-tsx-so-that-after-account-deletion-it-only-clears-the-user-s-own-profile-related-localstorage-keys-and-does-not-delete-complaint-metadata-stored-in-localcomplaintstore-for-complaints-submitted-by-that-user",
-      "title": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+      "id": "feature-add-a-dedicated-staff-login-flow-page-similar-to-studentloginflow-and-hodloginflow-that-stores-staff-as-the-pending-role-in-localstorage-before-initiating-internet-identity-authentication-and-ensure-the-landingpage-includes-a-staff-role-card-entry-point",
+      "title": "Add a dedicated Staff login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'staff' as the pending role in localStorage before initiating Internet Identity authentication, and ensure the LandingPage includes a Staff role card entry point.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-full-admin-portal-with-a-dedicated-dashboard-view-showing-system-wide-complaint-statistics-total-pending-resolved-high-priority-across-all-departments-access-to-full-complaint-list-management-view-update-status-priority-for-all-complaints-user-management-page-emergency-logs-and-analytics-the-admin-sidebar-navigation-should-surface-all-admin-specific-pages",
+      "title": "Build a full Admin Portal with a dedicated dashboard view showing system-wide complaint statistics (total, pending, resolved, high-priority across all departments), access to full complaint list management (view, update status/priority for all complaints), user management page, emergency logs, and analytics. The admin sidebar navigation should surface all admin-specific pages.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-full-staff-portal-with-a-dedicated-dashboard-view-showing-complaints-relevant-to-the-staff-member-s-department-ability-to-view-and-update-complaint-status-for-complaints-in-their-department-and-access-to-analytics-filtered-by-their-department-the-staff-sidebar-navigation-should-surface-all-staff-specific-pages",
+      "title": "Build a full Staff Portal with a dedicated dashboard view showing complaints relevant to the staff member's department, ability to view and update complaint status for complaints in their department, and access to analytics filtered by their department. The staff sidebar navigation should surface all staff-specific pages.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-profilesetupmodal-to-allow-admin-and-staff-as-selectable-roles-during-profile-setup-ensuring-the-role-is-correctly-saved-and-encoded-in-the-backend-profile-via-the-pipe-delimited-format-used-in-userprofilehelpers",
+      "title": "Update the ProfileSetupModal to allow 'admin' and 'staff' as selectable roles during profile setup, ensuring the role is correctly saved and encoded in the backend profile via the pipe-delimited format used in userProfileHelpers.",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
@@ -29,27 +50,27 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fix sign out option bug",
+      "summary": "Add admin portal",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Ensure complaints are not deleted when an account is removed",
+      "summary": "Add staff portal",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-4",
-      "summary": "Update the backend account deletion logic in backend/main.mo so that when a user profile is deleted, the user's complaints remain in the system and are NOT removed. Complaints should be preserved and remain accessible to HOD/admin after the submitting account is deleted.",
+      "id": "AR-8",
+      "summary": "Update the backend main actor to ensure the 'staff' role is recognized in role-based permission checks alongside the existing 'admin', 'hod', and 'student' roles. Staff should be permitted to update complaint statuses for complaints in their department.",
       "reqIds": [
-        "REQ-2"
+        "REQ-6"
       ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "CampusVoice",
+  "projectName": "CampusVoice AI",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

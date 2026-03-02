@@ -1,11 +1,16 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the sign out functionality and ensure complaints are preserved when a user account is deleted.
+**Goal:** Add Admin and Staff portals to CampusVoice AI, giving each role its own login flow, dashboard, and navigation.
 
 **Planned changes:**
-- Fix sign out logic in `AppHeader.tsx` and `AppSidebar.tsx` so that clicking sign out correctly terminates the Internet Identity session, clears app state (profile, notifications, role), and redirects to the landing page without errors.
-- Update the backend account deletion logic in `backend/main.mo` to remove any cascade-delete behavior that deletes complaints when a user profile is removed, so complaints remain intact and visible to HOD/admin after the submitter's account is deleted.
-- Update `DeleteAccountDialog.tsx` so that after account deletion, only profile-specific localStorage keys are cleared, while complaint metadata in `localComplaintStore` (categories, departments, media references, feedback) is preserved.
+- Add Admin and Staff role cards to the LandingPage alongside existing Student and HOD/Staff cards
+- Create `AdminLoginFlow` component that stores `'admin'` as `pendingRole` in localStorage before triggering Internet Identity login
+- Create `StaffLoginFlow` component that stores `'staff'` as `pendingRole` in localStorage before triggering Internet Identity login
+- Build Admin Portal dashboard with system-wide complaint stats (total, pending, resolved, high-priority), full complaint list management (view/update status & priority for all departments), user management, emergency logs, and analytics pages
+- Build Staff Portal dashboard with department-scoped complaint stats, ability to view and update complaint status for their department, and department-filtered analytics
+- Update `AppSidebar` to render correct nav items for admin (Dashboard, Complaints, Analytics, User Management, Emergency Logs) and staff (Dashboard, Complaints, Analytics) roles
+- Update `ProfileSetupModal` role dropdown to include `'admin'` and `'staff'` options, saved via the existing pipe-delimited encoding in `userProfileHelpers`
+- Update backend to recognize `'staff'` as a valid role and permit staff to update complaint statuses for their department
 
-**User-visible outcome:** Users can sign out without errors and be redirected to the landing page. When a user deletes their account, all complaints they submitted remain visible and fully intact for HOD and admin roles.
+**User-visible outcome:** Admins and staff members can log in via their own portal, access role-specific dashboards with relevant complaint data, and manage complaints within their scope of access.

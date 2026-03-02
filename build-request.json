@@ -1,77 +1,134 @@
 {
   "kind": "build_request",
-  "title": "Fix sign out option and preserve complaints on account deletion",
-  "projectName": "CampusVoice",
-  "priority": "high",
+  "title": "Add Admin and Staff Portals",
+  "projectName": "CampusVoice AI",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
+      "text": "Add a dedicated Admin login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'admin' as the pending role in localStorage before initiating Internet Identity authentication, and add an Admin role card on the LandingPage alongside the existing Student and HOD/Staff cards.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "fix the error of sign out options",
-          "Fix the sign out option"
+          "add both admin and staff portal also"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking the sign out option in the header dropdown successfully logs the user out via Internet Identity.",
-        "Clicking the sign out option in the sidebar successfully logs the user out via Internet Identity.",
-        "After sign out, the user is redirected to the landing/login page.",
-        "No console errors occur during the sign out flow.",
-        "App state (profile, notifications, role) is cleared after sign out."
+        "A new AdminLoginFlow component exists and is reachable from the landing page",
+        "Clicking the Admin card on LandingPage navigates to the Admin login flow",
+        "The admin login flow stores 'admin' as pendingRole in localStorage before triggering Internet Identity login",
+        "After login, a user who selects admin role is directed to the admin dashboard"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the backend account deletion logic in backend/main.mo so that when a user profile is deleted, the user's complaints remain in the system and are NOT removed. Complaints should be preserved and remain accessible to HOD/admin after the submitting account is deleted.",
-      "target": "backend",
+      "text": "Add a dedicated Staff login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'staff' as the pending role in localStorage before initiating Internet Identity authentication, and ensure the LandingPage includes a Staff role card entry point.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "if the account deleted the complaints remains not deleted",
-          "ensure complaints are not deleted when an account is removed"
+          "add both admin and staff portal also"
         ]
       },
       "acceptanceCriteria": [
-        "Deleting a user account via the deleteProfile (or equivalent) backend function does not delete that user's associated complaints.",
-        "Complaints submitted by a deleted account remain visible to HOD and admin roles in the complaints list.",
-        "The complaint data (title, description, status, priority, category) is fully intact after the submitter's account is deleted."
+        "A new StaffLoginFlow component exists and is reachable from the landing page",
+        "Clicking the Staff card on LandingPage navigates to the Staff login flow",
+        "The staff login flow stores 'staff' as pendingRole in localStorage before triggering Internet Identity login",
+        "After login, a user who selects staff role is directed to the staff dashboard"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+      "text": "Build a full Admin Portal with a dedicated dashboard view showing system-wide complaint statistics (total, pending, resolved, high-priority across all departments), access to full complaint list management (view, update status/priority for all complaints), user management page, emergency logs, and analytics. The admin sidebar navigation should surface all admin-specific pages.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "if the account deleted the complaints remains not deleted",
-          "ensure complaints are not deleted when an account is removed"
+          "add both admin and staff portal also"
         ]
       },
       "acceptanceCriteria": [
-        "After account deletion, complaint metadata in localStorage (categories, departments, media references, feedback) is preserved.",
-        "Only user profile-specific localStorage keys are cleared on account deletion.",
-        "Emergency alert and notification localStorage entries unrelated to the deleted user are not affected."
+        "Admin dashboard shows system-wide stats: total complaints, pending, resolved, and high-priority counts",
+        "Admin can view and update status/priority for any complaint regardless of department",
+        "Admin sidebar shows navigation items for Dashboard, Complaints, Analytics, User Management, Emergency Logs",
+        "Admin portal is only accessible when campusRole is 'admin'",
+        "AppSidebar renders correct admin nav items for the admin role"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Build a full Staff Portal with a dedicated dashboard view showing complaints relevant to the staff member's department, ability to view and update complaint status for complaints in their department, and access to analytics filtered by their department. The staff sidebar navigation should surface all staff-specific pages.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "add both admin and staff portal also"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Staff dashboard shows department-scoped stats: total, pending, resolved, high-priority for their department",
+        "Staff can view and update status of complaints assigned to their department",
+        "Staff sidebar shows navigation items for Dashboard, Complaints, Analytics",
+        "Staff portal is only accessible when campusRole is 'staff'",
+        "AppSidebar renders correct staff nav items for the staff role"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Update the ProfileSetupModal to allow 'admin' and 'staff' as selectable roles during profile setup, ensuring the role is correctly saved and encoded in the backend profile via the pipe-delimited format used in userProfileHelpers.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "add both admin and staff portal also"
+        ]
+      },
+      "acceptanceCriteria": [
+        "ProfileSetupModal role dropdown includes 'admin' and 'staff' as options",
+        "Selecting admin or staff role saves correctly to the backend profile",
+        "The encoded profile name string correctly encodes the admin/staff role via userProfileHelpers"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Update the backend main actor to ensure the 'staff' role is recognized in role-based permission checks alongside the existing 'admin', 'hod', and 'student' roles. Staff should be permitted to update complaint statuses for complaints in their department.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "add both admin and staff portal also"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The backend CampusRole type or equivalent includes 'staff' as a valid role",
+        "Permission checks allow staff to update complaint status",
+        "Admin retains full access to all complaint operations"
       ]
     }
   ],
   "constraints": [
-    "Do not change complaint data models or existing complaint CRUD endpoints beyond removing any cascade-delete behavior tied to user accounts.",
-    "Do not modify files listed in frontend.immutablePaths: useInternetIdentity.ts, useActor.ts, main.tsx, and frontend/src/components/ui."
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
+    "Admin and staff login flows must follow the same Internet Identity authentication pattern as StudentLoginFlow and HODLoginFlow",
+    "Role encoding must use the existing pipe-delimited format in userProfileHelpers.ts"
   ],
   "nonGoals": [
-    "Reassigning complaint ownership to another user after account deletion.",
-    "Adding any new complaint or user management features.",
-    "Changes to the emergency alert notification system."
+    "Separate backend deployments or microservices for admin/staff",
+    "Third-party authentication providers",
+    "Real-time notifications via WebSockets",
+    "Email or SMS alerts for admin/staff"
   ],
   "imageRequirements": {
     "required": [],

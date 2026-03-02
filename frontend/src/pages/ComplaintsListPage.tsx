@@ -1,166 +1,203 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { useGetAllComplaints, useUpdateComplaintStatus } from '../hooks/useQueries';
-import { getAllLocalMeta, getLocalMeta, addNotification } from '../lib/localComplaintStore';
-import { ComplaintStatus, type Complaint } from '../backend';
-import ComplaintCard from '../components/ComplaintCard';
-import FeedbackForm from '../components/FeedbackForm';
-import { StatusBadge, PriorityBadge } from '../components/ComplaintCard';
-import { formatTimestamp, formatDeadline } from '../lib/complaintHelpers';
-import { downloadComplaintsAsCSV } from '../lib/reportGenerator';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+import { Complaint, ComplaintStatus, Priority } from '../backend';
 import {
-  ClipboardList,
   Search,
   Download,
-  Video,
-  FileAudio,
+  Eye,
+  CheckCircle,
   Clock,
-  Star,
-  AlertTriangle,
+  FileText,
+  Loader2,
 } from 'lucide-react';
-import { SENSITIVE_CATEGORIES } from '../constants/complaintCategories';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 export default function ComplaintsListPage() {
-  const { extendedProfile, campusRole } = useAppContext();
-  const { data: allComplaints = [], isLoading } = useGetAllComplaints();
-  const updateStatus = useUpdateComplaintStatus();
-  const localMeta = getAllLocalMeta();
-
-  const [search, setSearch] = useState('');
+  const { campusRole, extendedProfile } = useAppContext();
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const isAdmin = campusRole === 'admin';
-  const isHOD = campusRole === 'hod';
+  const { data: allComplaints, isLoading } = useGetAllComplaints();
+  const updateStatusMutation = useUpdateComplaintStatus();
 
-  // Filter by department for HOD/Staff
-  const departmentComplaints =
-    isAdmin
-      ? allComplaints
-      : allComplaints.filter((c) => {
-          const meta = localMeta[c.id];
-          if (!meta) return false;
-          // HOD sees all dept complaints including sensitive ones
-          // Staff sees non-sensitive only
-          if (campusRole === 'staff' && SENSITIVE_CATEGORIES.includes(meta.category as (typeof SENSITIVE_CATEGORIES)[number])) {
-            return false;
-          }
-          return meta.department === extendedProfile?.department;
-        });
+  // Filter complaints based on role
+  let complaints = allComplaints || [];
 
-  const filtered = departmentComplaints.filter((c) => {
-    const meta = localMeta[c.id];
+  // Staff: filter by department
+  if (campusRole === 'staff' && extendedProfile?.department) {
+    const dept = extendedProfile.department;
+    complaints = complaints.filter((c) =>
+      c.description.toLowerCase().includes(dept.toLowerCase())
+    );
+  }
+
+  // HOD: filter by department too
+  if (campusRole === 'hod' && extendedProfile?.department) {
+    const dept = extendedProfile.department;
+    complaints = complaints.filter((c) =>
+      c.description.toLowerCase().includes(dept.toLowerCase())
+    );
+  }
+
+  // Apply search and filters
+  const filteredComplaints = complaints.filter((c) => {
     const matchesSearch =
-      !search ||
-      c.id.toLowerCase().includes(search.toLowerCase()) ||
-      c.description.toLowerCase().includes(search.toLowerCase()) ||
-      meta?.category?.toLowerCase().includes(search.toLowerCase()) ||
-      meta?.studentName?.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || c.priority === priorityFilter;
+      !searchQuery ||
+      c.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'registered' && c.status === ComplaintStatus.registered) ||
+      (statusFilter === 'inProgress' && c.status === ComplaintStatus.inProgress) ||
+      (statusFilter === 'resolved' && c.status === ComplaintStatus.resolved);
+
+    const matchesPriority =
+      priorityFilter === 'all' ||
+      (priorityFilter === 'high' && c.priority === Priority.high) ||
+      (priorityFilter === 'medium' && c.priority === Priority.medium) ||
+      (priorityFilter === 'low' && c.priority === Priority.low);
+
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const handleUpdateStatus = async (id: string, status: ComplaintStatus) => {
+  const handleStatusUpdate = async (complaintId: string, newStatus: ComplaintStatus) => {
+    setUpdatingId(complaintId);
     try {
-      await updateStatus.mutateAsync({ id, status });
-      const meta = localMeta[id];
-      addNotification({
-        message: `Complaint ${id} status updated to ${status === ComplaintStatus.inProgress ? 'In Progress' : 'Resolved'}`,
-        type: 'success',
-        complaintId: id,
-      });
-      if (meta?.studentName && meta.studentName !== 'Anonymous') {
-        addNotification({
-          message: `📧 Email notification sent to student for complaint ${id}`,
-          type: 'info',
-          complaintId: id,
-        });
+      await updateStatusMutation.mutateAsync({ id: complaintId, status: newStatus });
+      toast.success('Complaint status updated successfully');
+      if (selectedComplaint?.id === complaintId) {
+        setSelectedComplaint((prev) => prev ? { ...prev, status: newStatus } : null);
       }
-    } catch {
-      // Silently fail
+    } catch (error: any) {
+      toast.error('Failed to update status: ' + (error?.message || 'Unknown error'));
+    } finally {
+      setUpdatingId(null);
     }
   };
 
-  const handleDownload = () => {
-    const withMeta = filtered.map((c) => ({
-      ...c,
-      category: localMeta[c.id]?.category,
-      department: localMeta[c.id]?.department,
-      isAnonymous: localMeta[c.id]?.isAnonymous,
-      studentName: localMeta[c.id]?.studentName,
-    }));
-    downloadComplaintsAsCSV(withMeta, `${campusRole}-complaints`);
+  const handleExportCSV = () => {
+    const headers = ['ID', 'Description', 'Status', 'Priority', 'Created At'];
+    const rows = filteredComplaints.map((c) => [
+      c.id,
+      `"${c.description.replace(/"/g, '""')}"`,
+      c.status,
+      c.priority,
+      new Date(Number(c.createdAt) / 1_000_000).toLocaleDateString(),
+    ]);
+    const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `complaints-${campusRole}-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const selectedMeta = selectedComplaint ? getLocalMeta(selectedComplaint.id) : null;
-  const isAnonymousForRole =
-    selectedMeta?.isAnonymous && (campusRole === 'staff' || campusRole === 'hod');
+  const getStatusBadge = (status: ComplaintStatus) => {
+    switch (status) {
+      case ComplaintStatus.resolved:
+        return <Badge className="bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20">Resolved</Badge>;
+      case ComplaintStatus.inProgress:
+        return <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20 hover:bg-yellow-500/20">In Progress</Badge>;
+      default:
+        return <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20">Registered</Badge>;
+    }
+  };
 
-  const title = isAdmin
-    ? 'All Complaints'
-    : isHOD
-    ? 'Department Complaints'
-    : 'Department Complaints';
+  const getPriorityBadge = (priority: Priority) => {
+    switch (priority) {
+      case Priority.high:
+        return <Badge className="bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20">High</Badge>;
+      case Priority.medium:
+        return <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500/20">Medium</Badge>;
+      default:
+        return <Badge className="bg-gray-500/10 text-gray-400 border-gray-500/20 hover:bg-gray-500/20">Low</Badge>;
+    }
+  };
+
+  const getPageTitle = () => {
+    switch (campusRole) {
+      case 'admin': return 'All Complaints';
+      case 'hod': return 'Department Complaints';
+      case 'staff': return 'Department Complaints';
+      default: return 'Complaints';
+    }
+  };
+
+  const canUpdateStatus = campusRole === 'admin' || campusRole === 'hod' || campusRole === 'staff';
 
   return (
     <div className="page-enter space-y-5">
+      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-            <ClipboardList className="w-6 h-6 text-primary" />
-            {title}
+            <FileText className="w-6 h-6 text-primary" />
+            {getPageTitle()}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {filtered.length} complaint{filtered.length !== 1 ? 's' : ''}
-            {!isAdmin && extendedProfile?.department && ` in ${extendedProfile.department}`}
+          <p className="text-muted-foreground text-sm mt-1">
+            {isLoading ? 'Loading...' : `${filteredComplaints.length} complaint${filteredComplaints.length !== 1 ? 's' : ''} found`}
+            {!isLoading && campusRole !== 'admin' && extendedProfile?.department && ` in ${extendedProfile.department}`}
           </p>
         </div>
-        {filtered.length > 0 && (
-          <Button variant="outline" size="sm" className="gap-2" onClick={handleDownload}>
-            <Download className="w-4 h-4" />
-            Export CSV
-          </Button>
-        )}
+        <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={filteredComplaints.length === 0}>
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-48">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search complaints..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-36">
-            <SelectValue />
+          <SelectTrigger className="w-full sm:w-40">
+            <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value={ComplaintStatus.registered}>Registered</SelectItem>
-            <SelectItem value={ComplaintStatus.inProgress}>In Progress</SelectItem>
-            <SelectItem value={ComplaintStatus.resolved}>Resolved</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="registered">Registered</SelectItem>
+            <SelectItem value="inProgress">In Progress</SelectItem>
+            <SelectItem value="resolved">Resolved</SelectItem>
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-36">
-            <SelectValue />
+          <SelectTrigger className="w-full sm:w-40">
+            <SelectValue placeholder="Priority" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Priority</SelectItem>
+            <SelectItem value="all">All Priorities</SelectItem>
             <SelectItem value="high">High</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
             <SelectItem value="low">Low</SelectItem>
@@ -168,207 +205,151 @@ export default function ComplaintsListPage() {
         </Select>
       </div>
 
-      {/* List */}
+      {/* Complaints List */}
       {isLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <Skeleton className="h-4 w-32 mb-2" />
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-2/3" />
-              </CardContent>
-            </Card>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="bg-card border border-border rounded-xl p-4">
+              <Skeleton className="h-4 w-32 mb-2" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <ClipboardList className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-            <p className="font-medium text-foreground">No complaints found</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {departmentComplaints.length === 0
-                ? 'No complaints have been submitted yet.'
-                : 'Try adjusting your filters.'}
-            </p>
-          </CardContent>
-        </Card>
+      ) : filteredComplaints.length === 0 ? (
+        <div className="text-center py-16 bg-card border border-border rounded-xl border-dashed">
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+          <p className="text-foreground font-medium">No complaints found</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            {searchQuery || statusFilter !== 'all' || priorityFilter !== 'all'
+              ? 'Try adjusting your filters'
+              : 'No complaints have been submitted yet'}
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((c) => (
-            <ComplaintCard
-              key={c.id}
-              complaint={c}
-              meta={localMeta[c.id]}
-              currentRole={campusRole}
-              onView={setSelectedComplaint}
-              onUpdateStatus={handleUpdateStatus}
-              isUpdating={updateStatus.isPending}
-            />
+          {filteredComplaints.map((complaint) => (
+            <div
+              key={complaint.id}
+              className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                      {complaint.id}
+                    </span>
+                    {getStatusBadge(complaint.status)}
+                    {getPriorityBadge(complaint.priority)}
+                  </div>
+                  <p className="text-sm text-foreground line-clamp-2">{complaint.description}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Submitted: {new Date(Number(complaint.createdAt) / 1_000_000).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {canUpdateStatus && (
+                    <Select
+                      value={complaint.status}
+                      onValueChange={(val) => handleStatusUpdate(complaint.id, val as ComplaintStatus)}
+                      disabled={updatingId === complaint.id}
+                    >
+                      <SelectTrigger className="w-36 h-8 text-xs">
+                        {updatingId === complaint.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <SelectValue />
+                        )}
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={ComplaintStatus.registered}>Registered</SelectItem>
+                        <SelectItem value={ComplaintStatus.inProgress}>In Progress</SelectItem>
+                        <SelectItem value={ComplaintStatus.resolved}>Resolved</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setSelectedComplaint(complaint)}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
 
       {/* Detail Dialog */}
-      <Dialog open={!!selectedComplaint} onOpenChange={(o) => !o && setSelectedComplaint(null)}>
+      <Dialog open={!!selectedComplaint} onOpenChange={(open) => !open && setSelectedComplaint(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm font-mono text-muted-foreground">
-              {selectedComplaint?.id}
-            </DialogTitle>
+            <DialogTitle>Complaint Details</DialogTitle>
+            <DialogDescription>
+              Full details for complaint {selectedComplaint?.id}
+            </DialogDescription>
           </DialogHeader>
-
           {selectedComplaint && (
-            <ScrollArea className="max-h-[70vh]">
-              <div className="space-y-4 pr-2">
-                <div className="flex gap-2 flex-wrap">
-                  <StatusBadge status={selectedComplaint.status} />
-                  <PriorityBadge priority={selectedComplaint.priority} />
-                  {selectedMeta?.isAnonymous && (
-                    <Badge variant="secondary" className="text-xs">Anonymous</Badge>
-                  )}
-                  {selectedMeta?.category && (
-                    SENSITIVE_CATEGORIES.includes(selectedMeta.category as (typeof SENSITIVE_CATEGORIES)[number]) && (
-                      <Badge className="text-xs bg-red-100 text-red-800">Sensitive</Badge>
-                    )
-                  )}
-                </div>
-
-                {selectedMeta?.category && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Category</p>
-                    <Badge variant="outline">{selectedMeta.category}</Badge>
-                  </div>
-                )}
-
-                {/* Student identity */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Submitted by</p>
-                  <p className="text-sm font-medium">
-                    {isAnonymousForRole
-                      ? 'Anonymous Student'
-                      : selectedMeta?.studentName || 'Unknown'}
-                  </p>
-                  {isAdmin && selectedMeta?.isAnonymous && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      (Admin view: {selectedMeta.studentName})
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Description</p>
-                  <p className="text-sm text-foreground leading-relaxed">
-                    {selectedComplaint.description}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-0.5">Submitted</p>
-                    <p className="font-medium">{formatTimestamp(selectedComplaint.createdAt)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-0.5">Deadline</p>
-                    <p className="font-medium flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatDeadline(selectedComplaint.priority)}
-                    </p>
-                  </div>
-                </div>
-
-                {selectedMeta?.mediaItems && selectedMeta.mediaItems.length > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Attachments ({selectedMeta.mediaItems.length})
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {selectedMeta.mediaItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="rounded-lg overflow-hidden border border-border bg-muted aspect-square flex items-center justify-center cursor-pointer hover:opacity-80"
-                          onClick={() => {
-                            const w = window.open();
-                            if (w && item.type === 'image') {
-                              w.document.write(`<img src="${item.dataUrl}" style="max-width:100%" />`);
-                            }
-                          }}
-                        >
-                          {item.type === 'image' ? (
-                            <img src={item.dataUrl} alt={item.name} className="w-full h-full object-cover" />
-                          ) : item.type === 'video' ? (
-                            <Video className="w-6 h-6 text-muted-foreground" />
-                          ) : (
-                            <FileAudio className="w-6 h-6 text-muted-foreground" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Feedback */}
-                {selectedMeta?.feedback && (
-                  <div className="border-t border-border pt-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Star className="w-4 h-4 text-amber-500" />
-                      <p className="text-sm font-semibold">Student Feedback</p>
-                    </div>
-                    <FeedbackForm
-                      complaintId={selectedComplaint.id}
-                      existingFeedback={selectedMeta.feedback}
-                      readOnly={true}
-                    />
-                  </div>
-                )}
-
-                {/* Status update */}
-                {selectedComplaint.status !== ComplaintStatus.resolved && (
-                  <div className="border-t border-border pt-4 flex gap-2">
-                    {selectedComplaint.status === ComplaintStatus.registered && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        disabled={updateStatus.isPending}
-                        onClick={() => {
-                          handleUpdateStatus(selectedComplaint.id, ComplaintStatus.inProgress);
-                          setSelectedComplaint(null);
-                        }}
-                      >
-                        Mark In Progress
-                      </Button>
-                    )}
-                    {selectedComplaint.status === ComplaintStatus.inProgress && (
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                        disabled={updateStatus.isPending}
-                        onClick={() => {
-                          handleUpdateStatus(selectedComplaint.id, ComplaintStatus.resolved);
-                          setSelectedComplaint(null);
-                        }}
-                      >
-                        Mark Resolved
-                      </Button>
-                    )}
-                  </div>
-                )}
-
-                {/* HOD Escalate */}
-                {isHOD && selectedComplaint.priority === 'high' && (
-                  <div className="flex items-start gap-2 bg-red-50 dark:bg-red-950/20 rounded-lg p-3">
-                    <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-semibold text-red-700 dark:text-red-400">High Priority</p>
-                      <p className="text-xs text-red-600 dark:text-red-400">
-                        This complaint requires immediate attention.
-                      </p>
-                    </div>
-                  </div>
-                )}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                  {selectedComplaint.id}
+                </span>
+                {getStatusBadge(selectedComplaint.status)}
+                {getPriorityBadge(selectedComplaint.priority)}
               </div>
-            </ScrollArea>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Description</p>
+                <p className="text-sm text-foreground bg-muted/50 rounded-lg p-3">
+                  {selectedComplaint.description}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Submitted</p>
+                  <p className="text-foreground">
+                    {new Date(Number(selectedComplaint.createdAt) / 1_000_000).toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Student ID</p>
+                  <p className="text-foreground font-mono text-xs truncate">
+                    {selectedComplaint.studentId.toString().substring(0, 20)}...
+                  </p>
+                </div>
+              </div>
+              {canUpdateStatus && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Update Status</p>
+                  <div className="flex gap-2">
+                    {[
+                      { status: ComplaintStatus.registered, label: 'Registered', icon: FileText },
+                      { status: ComplaintStatus.inProgress, label: 'In Progress', icon: Clock },
+                      { status: ComplaintStatus.resolved, label: 'Resolved', icon: CheckCircle },
+                    ].map(({ status, label, icon: Icon }) => (
+                      <Button
+                        key={status}
+                        variant={selectedComplaint.status === status ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleStatusUpdate(selectedComplaint.id, status)}
+                        disabled={updatingId === selectedComplaint.id}
+                        className="flex-1 text-xs"
+                      >
+                        {updatingId === selectedComplaint.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                        ) : (
+                          <Icon className="w-3 h-3 mr-1" />
+                        )}
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>

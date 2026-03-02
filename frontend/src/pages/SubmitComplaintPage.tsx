@@ -19,7 +19,6 @@ import {
   Loader2,
   Sparkles,
   CheckCircle2,
-  AlertTriangle,
   Clock,
   Info,
   FilePlus,
@@ -37,7 +36,8 @@ type View =
   | 'admin-analytics'
   | 'hod-complaints'
   | 'hod-analytics'
-  | 'staff-complaints';
+  | 'staff-complaints'
+  | 'staff-analytics';
 
 interface SubmitComplaintPageProps {
   onNavigate: (view: View) => void;
@@ -77,7 +77,6 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
         else setPriority(Priority.low);
       }
 
-      // Analyze first image if present
       const firstImage = mediaItems.find((m) => m.type === 'image');
       if (firstImage) {
         const imgAnalysis = await analyzeImage(firstImage.dataUrl);
@@ -110,7 +109,6 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
     try {
       await createComplaint.mutateAsync({ id: complaintId, description: description.trim(), priority });
 
-      // Save local metadata
       saveLocalMeta({
         id: complaintId,
         category,
@@ -217,7 +215,7 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
           </CardHeader>
           <CardContent className="space-y-3">
             <Textarea
-              placeholder="Describe your complaint in detail. E.g., 'The fan in Room 302 has been broken for 3 days and it's very hot...'"
+              placeholder="Describe your complaint in detail..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
@@ -240,7 +238,6 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
               {aiAnalyzing ? 'Analyzing...' : 'Analyze with AI'}
             </Button>
 
-            {/* AI Result */}
             {aiResult && (
               <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 space-y-2">
                 <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
@@ -359,47 +356,25 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
           </CardContent>
         </Card>
 
-        {/* Sensitive category warning */}
-        {(category === 'Ragging Complaint' || category === 'Harassment Complaint') && (
-          <div className="flex items-start gap-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-red-700 dark:text-red-400">
-                Sensitive Complaint
-              </p>
-              <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
-                This complaint will be handled with strict confidentiality. Consider enabling anonymous mode.
-              </p>
-            </div>
-          </div>
-        )}
-
         {error && (
-          <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">{error}</p>
+          <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{error}</p>
         )}
 
-        <div className="flex gap-3">
-          <Button type="button" variant="outline" className="flex-1" onClick={() => onNavigate('dashboard')}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            className="flex-1 gap-2"
-            disabled={createComplaint.isPending || !description.trim() || !category}
-          >
-            {createComplaint.isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                <FilePlus className="w-4 h-4" />
-                Submit Complaint
-              </>
-            )}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={createComplaint.isPending}
+        >
+          {createComplaint.isPending ? (
+            <>
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            'Submit Complaint'
+          )}
+        </Button>
       </form>
     </div>
   );

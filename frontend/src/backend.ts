@@ -146,13 +146,20 @@ export interface backendInterface {
      * / Admins may pass any principal; regular users may only query themselves.
      */
     getComplaintsByStudent(student: Principal): Promise<Array<Complaint>>;
+    /**
+     * / Sort complaints by status and creation time, not just time.
+     */
+    getSortedComplaints(): Promise<Array<Complaint>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     /**
-     * / Admins can update any complaint status; a student can only update their own.
+     * / Admins, HODs, and staff (all authenticated #user and #admin role holders)
+     * / can update complaint statuses for complaints in their department.
+     * / Guests are excluded. Only authenticated users (#user) and admins (#admin)
+     * / are permitted, as the access control module supports #admin, #user, #guest.
      */
-    updateComplaintStatus(id: string, newStatus: ComplaintStatus): Promise<void>;
+    updateDepartmentComplaintStatus(id: string, newStatus: ComplaintStatus): Promise<void>;
 }
 import type { Complaint as _Complaint, ComplaintStatus as _ComplaintStatus, Priority as _Priority, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -297,6 +304,20 @@ export class Backend implements backendInterface {
             return from_candid_vec_n5(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getSortedComplaints(): Promise<Array<Complaint>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getSortedComplaints();
+                return from_candid_vec_n5(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getSortedComplaints();
+            return from_candid_vec_n5(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
@@ -339,17 +360,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateComplaintStatus(arg0: string, arg1: ComplaintStatus): Promise<void> {
+    async updateDepartmentComplaintStatus(arg0: string, arg1: ComplaintStatus): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateComplaintStatus(arg0, to_candid_ComplaintStatus_n15(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.updateDepartmentComplaintStatus(arg0, to_candid_ComplaintStatus_n15(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateComplaintStatus(arg0, to_candid_ComplaintStatus_n15(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.updateDepartmentComplaintStatus(arg0, to_candid_ComplaintStatus_n15(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }

@@ -10,7 +10,7 @@ import { formatTimestamp, formatDeadline } from '../lib/complaintHelpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,8 +20,6 @@ import {
   FileSearch,
   Download,
   Search,
-  X,
-  Image as ImageIcon,
   Video,
   FileAudio,
   Clock,
@@ -159,7 +157,6 @@ export default function TrackComplaintsPage() {
           {selectedComplaint && (
             <ScrollArea className="max-h-[70vh]">
               <div className="space-y-4 pr-2">
-                {/* Status & Priority */}
                 <div className="flex gap-2 flex-wrap">
                   <StatusBadge status={selectedComplaint.status} />
                   <PriorityBadge priority={selectedComplaint.priority} />
@@ -168,7 +165,6 @@ export default function TrackComplaintsPage() {
                   )}
                 </div>
 
-                {/* Category */}
                 {selectedMeta?.category && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Category</p>
@@ -176,7 +172,6 @@ export default function TrackComplaintsPage() {
                   </div>
                 )}
 
-                {/* Description */}
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Description</p>
                   <p className="text-sm text-foreground leading-relaxed">
@@ -184,7 +179,6 @@ export default function TrackComplaintsPage() {
                   </p>
                 </div>
 
-                {/* Dates */}
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="text-xs text-muted-foreground mb-0.5">Submitted</p>
@@ -199,7 +193,6 @@ export default function TrackComplaintsPage() {
                   </div>
                 </div>
 
-                {/* AI Info */}
                 {selectedMeta?.aiEstimatedDays && (
                   <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-3 text-sm">
                     <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1">
@@ -216,7 +209,6 @@ export default function TrackComplaintsPage() {
                   </div>
                 )}
 
-                {/* Media */}
                 {selectedMeta?.mediaItems && selectedMeta.mediaItems.length > 0 && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-2">
@@ -251,7 +243,6 @@ export default function TrackComplaintsPage() {
                   </div>
                 )}
 
-                {/* Feedback for resolved */}
                 {selectedComplaint.status === ComplaintStatus.resolved && (
                   <div className="border-t border-border pt-4">
                     <div className="flex items-center gap-2 mb-3">

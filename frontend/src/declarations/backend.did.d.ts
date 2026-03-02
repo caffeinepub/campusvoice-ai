@@ -58,13 +58,23 @@ export interface _SERVICE {
    * / Admins may pass any principal; regular users may only query themselves.
    */
   'getComplaintsByStudent' : ActorMethod<[Principal], Array<Complaint>>,
+  /**
+   * / Sort complaints by status and creation time, not just time.
+   */
+  'getSortedComplaints' : ActorMethod<[], Array<Complaint>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   /**
-   * / Admins can update any complaint status; a student can only update their own.
+   * / Admins, HODs, and staff (all authenticated #user and #admin role holders)
+   * / can update complaint statuses for complaints in their department.
+   * / Guests are excluded. Only authenticated users (#user) and admins (#admin)
+   * / are permitted, as the access control module supports #admin, #user, #guest.
    */
-  'updateComplaintStatus' : ActorMethod<[string, ComplaintStatus], undefined>,
+  'updateDepartmentComplaintStatus' : ActorMethod<
+    [string, ComplaintStatus],
+    undefined
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

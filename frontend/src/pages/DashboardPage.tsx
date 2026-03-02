@@ -16,6 +16,9 @@ import {
   TrendingUp,
   BarChart3,
   MessageSquare,
+  Users,
+  Shield,
+  Briefcase,
 } from 'lucide-react';
 
 type View =
@@ -29,7 +32,8 @@ type View =
   | 'admin-analytics'
   | 'hod-complaints'
   | 'hod-analytics'
-  | 'staff-complaints';
+  | 'staff-complaints'
+  | 'staff-analytics';
 
 interface DashboardPageProps {
   onNavigate: (view: View) => void;
@@ -178,6 +182,20 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
           desc: 'Charts and predictive analysis',
           color: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         },
+        {
+          label: 'User Management',
+          icon: <Users className="w-5 h-5" />,
+          view: 'admin-users' as View,
+          desc: 'Manage users and roles',
+          color: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        },
+        {
+          label: 'Emergency Logs',
+          icon: <AlertTriangle className="w-5 h-5" />,
+          view: 'admin-emergencies' as View,
+          desc: 'View emergency alerts',
+          color: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        },
       ]
     : isHOD
     ? [
@@ -197,12 +215,20 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
         },
       ]
     : [
+        // Staff
         {
           label: 'Department Complaints',
           icon: <ClipboardList className="w-5 h-5" />,
           view: 'staff-complaints' as View,
           desc: 'View and update complaints',
           color: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        },
+        {
+          label: 'Analytics',
+          icon: <BarChart3 className="w-5 h-5" />,
+          view: 'staff-analytics' as View,
+          desc: 'Department statistics',
+          color: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         },
       ];
 
@@ -322,43 +348,24 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <div className="flex flex-col items-end gap-1 ml-3 flex-shrink-0">
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          c.status === ComplaintStatus.registered
-                            ? 'status-badge-registered'
+                          c.status === ComplaintStatus.resolved
+                            ? 'bg-emerald-100 text-emerald-700'
                             : c.status === ComplaintStatus.inProgress
-                            ? 'status-badge-inprogress'
-                            : 'status-badge-resolved'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-blue-100 text-blue-700'
                         }`}
                       >
-                        {c.status === ComplaintStatus.registered
-                          ? 'Registered'
+                        {c.status === ComplaintStatus.resolved
+                          ? 'Resolved'
                           : c.status === ComplaintStatus.inProgress
                           ? 'In Progress'
-                          : 'Resolved'}
+                          : 'Registered'}
                       </span>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Empty state for students */}
-      {isStudent && !isLoading && complaints.length === 0 && (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <FilePlus className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="font-semibold text-foreground mb-1">No complaints yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Submit your first complaint to get started
-            </p>
-            <Button onClick={() => onNavigate('submit')} className="gap-2">
-              <FilePlus className="w-4 h-4" />
-              Submit a Complaint
-            </Button>
           </CardContent>
         </Card>
       )}

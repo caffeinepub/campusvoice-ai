@@ -1,23 +1,50 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T07:03:58.801Z",
-  "summary": "The diff implements REQ-1 (sign out fix in AppHeader.tsx and AppSidebar.tsx) and REQ-3 (selective localStorage clearing in DeleteAccountDialog.tsx) correctly. However, REQ-2 requiring changes to backend/main.mo to prevent cascade-deletion of complaints on account deletion is not present in the diff — no backend file was modified.",
+  "generatedAt": "2026-03-02T13:13:24.120Z",
+  "summary": "The diff implements most requirements well. REQ-1 through REQ-5 are substantially implemented. REQ-6 (backend staff role permission checks) is partially addressed but the diff evidence is truncated and unclear about the full implementation. One notable gap: REQ-3 requires admin to update complaint priority in addition to status, but no separate priority-update endpoint is clearly visible. The admin dashboard and portal pages exist and are functional. Staff portal is implemented with department-scoped views. ProfileSetupModal includes admin and staff roles.",
   "missing_requirements": [
     {
-      "id": "REQ-2",
-      "requirement": "Update the backend account deletion logic in backend/main.mo so that when a user profile is deleted, the user's complaints remain in the system and are NOT removed.",
-      "reason": "The diff shows no modifications to backend/main.mo or any backend file. The cascade-delete behavior on user account deletion has not been addressed at the backend level.",
-      "evidence": []
+      "id": "REQ-3",
+      "requirement": "Admin can view and update status/priority for any complaint regardless of department",
+      "reason": "The diff shows useUpdateComplaintStatus handles status updates only. No priority update mutation or backend endpoint for updating complaint priority is visible in the diff. The ComplaintsListPage shows status update dropdowns but no priority update UI for admin.",
+      "evidence": [
+        "frontend/src/pages/ComplaintsListPage.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "requirement": "The backend CampusRole type or equivalent includes 'staff' as a valid role and permission checks allow staff to update complaint status",
+      "reason": "The backend/main.mo diff is truncated and only shows a comment referencing staff. There is no visible CampusRole variant for 'staff' nor a clear permission check allowing staff to call updateComplaintStatus in the visible portion of the diff.",
+      "evidence": [
+        "backend/main.mo"
+      ]
     }
   ],
   "hallucinated_features": [],
-  "confidence": 0.95,
+  "confidence": 0.78,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/App.tsx",
+    "frontend/src/components/AdminLoginFlow.tsx",
     "frontend/src/components/AppHeader.tsx",
     "frontend/src/components/AppSidebar.tsx",
-    "frontend/src/components/DeleteAccountDialog.tsx",
+    "frontend/src/components/EmergencyAlertOverlay.tsx",
+    "frontend/src/components/ProfileSetupModal.tsx",
+    "frontend/src/components/StaffLoginFlow.tsx",
+    "frontend/src/contexts/AppContext.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/userProfileHelpers.ts",
+    "frontend/src/pages/AnalyticsPage.tsx",
+    "frontend/src/pages/ComplaintsListPage.tsx",
+    "frontend/src/pages/DashboardPage.tsx",
+    "frontend/src/pages/EmergencyLogsPage.tsx",
+    "frontend/src/pages/LandingPage.tsx",
+    "frontend/src/pages/SubmitComplaintPage.tsx",
+    "frontend/src/pages/TrackComplaintsPage.tsx",
     "project_state.json"
   ]
 }

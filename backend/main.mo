@@ -113,18 +113,17 @@ actor {
     };
   };
 
-  /// Admins can update any complaint status; a student can only update their own.
-  public shared ({ caller }) func updateComplaintStatus(id : Text, newStatus : ComplaintStatus) : async () {
+  /// Admins, HODs, and staff (all authenticated #user and #admin role holders)
+  /// can update complaint statuses for complaints in their department.
+  /// Guests are excluded. Only authenticated users (#user) and admins (#admin)
+  /// are permitted, as the access control module supports #admin, #user, #guest.
+  public shared ({ caller }) func updateDepartmentComplaintStatus(id : Text, newStatus : ComplaintStatus) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Must be authenticated to update complaints");
+      Runtime.trap("Unauthorized: Only admins, HODs, or staff can update complaints in their department");
     };
     switch (complaints.get(id)) {
       case (null) { Runtime.trap("Complaint not found") };
       case (?complaint) {
-        // Non-admins may only touch their own complaints.
-        if (complaint.studentId != caller and not AccessControl.isAdmin(accessControlState, caller)) {
-          Runtime.trap("Unauthorized: Cannot update another user's complaint");
-        };
         let updatedComplaint : Complaint = {
           id = complaint.id;
           studentId = complaint.studentId;
@@ -178,5 +177,36 @@ actor {
       Runtime.trap("Unauthorized: Only admins can filter complaints by status");
     };
     complaints.values().toArray().filter(func(c : Complaint) : Bool { c.status == status });
+  };
+
+  /// Sort complaints by status and creation time, not just time.
+  public query ({ caller }) func getSortedComplaints() : async [Complaint] {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view sorted complaints");
+    };
+    let complaintsArray = complaints.values().toArray();
+
+    let compareStatusThenTime = func(a : Complaint, b : Complaint) : Order.Order {
+      let statusOrder = func(s : ComplaintStatus) : Int {
+        switch (s) {
+          case (#registered) { 1 };
+          case (#inProgress) { 2 };
+          case (#resolved) { 3 };
+        };
+      };
+
+      let aStatusOrder = statusOrder(a.status);
+      let bStatusOrder = statusOrder(b.status);
+
+      if (aStatusOrder < bStatusOrder) {
+        #less;
+      } else if (aStatusOrder > bStatusOrder) {
+        #greater;
+      } else {
+        Int.compare(a.createdAt, b.createdAt);
+      };
+    };
+
+    complaintsArray.sort(compareStatusThenTime);
   };
 };

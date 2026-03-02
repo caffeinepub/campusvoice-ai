@@ -38,7 +38,15 @@ interface AppHeaderProps {
 
 export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps) {
   const { clear, identity } = useInternetIdentity();
-  const { extendedProfile, campusRole, notifications, unreadCount, markRead, markAllRead, refreshNotifications } = useAppContext();
+  const {
+    extendedProfile,
+    campusRole,
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    refreshNotifications,
+  } = useAppContext();
   const queryClient = useQueryClient();
 
   const [emergencyOpen, setEmergencyOpen] = useState(false);
@@ -49,11 +57,9 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
 
   const handleLogout = async () => {
     try {
-      // Clear React Query cache first before clearing identity
       queryClient.clear();
       await clear();
     } catch (err) {
-      // Ensure we still clear the cache even if clear() throws
       queryClient.clear();
     }
   };
@@ -71,20 +77,14 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
       acknowledged: false,
     };
 
-    // Save the emergency to localStorage — AppContext polling will surface it
-    // to HOD and Admin automatically via the 5-second interval
     addEmergency(alert);
 
-    // Add a notification entry so it appears in the notification bell
     addNotification({
       message: `🚨 Emergency alert sent from ${location.trim()} by ${alert.studentName}`,
       type: 'error',
     });
 
-    // Play confirmation beep for the student who sent the alert
     playConfirmationBeep();
-
-    // Immediately refresh so HOD/Admin on the same session see it right away
     refreshNotifications();
 
     setEmergencySent(true);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 import LandingPage from './pages/LandingPage';
@@ -15,7 +15,13 @@ import ComplaintsListPage from './pages/ComplaintsListPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import UserManagementPage from './pages/UserManagementPage';
 import EmergencyLogsPage from './pages/EmergencyLogsPage';
+import StudentLoginFlow from './components/StudentLoginFlow';
+import HODLoginFlow from './components/HODLoginFlow';
+import AdminLoginFlow from './components/AdminLoginFlow';
+import StaffLoginFlow from './components/StaffLoginFlow';
 import { Skeleton } from '@/components/ui/skeleton';
+
+const PENDING_ROLE_KEY = 'campusvoice_pending_role';
 
 type View =
   | 'dashboard'
@@ -28,13 +34,17 @@ type View =
   | 'admin-analytics'
   | 'hod-complaints'
   | 'hod-analytics'
-  | 'staff-complaints';
+  | 'staff-complaints'
+  | 'staff-analytics';
+
+type PublicView = 'select' | 'student-login' | 'hod-login' | 'admin-login' | 'staff-login';
 
 function AppShell() {
   const { identity, isInitializing } = useInternetIdentity();
   const { extendedProfile, campusRole, isProfileLoading, isProfileFetched } = useAppContext();
-  const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentView, setCurrentView] = React.useState<View>('dashboard');
+  const [publicView, setPublicView] = React.useState<PublicView>('select');
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   // Reset to dashboard when role changes
   useEffect(() => {
@@ -59,14 +69,31 @@ function AppShell() {
   }
 
   if (!identity) {
-    return <LandingPage />;
+    if (publicView === 'student-login') {
+      return <StudentLoginFlow onBack={() => setPublicView('select')} />;
+    }
+    if (publicView === 'hod-login') {
+      return <HODLoginFlow onBack={() => setPublicView('select')} />;
+    }
+    if (publicView === 'admin-login') {
+      return <AdminLoginFlow onBack={() => setPublicView('select')} />;
+    }
+    if (publicView === 'staff-login') {
+      return <StaffLoginFlow onBack={() => setPublicView('select')} />;
+    }
+    return <LandingPage onNavigate={setPublicView} />;
   }
 
   // Show profile setup if authenticated but no profile yet
   const showProfileSetup = !!identity && isProfileFetched && !isProfileLoading && !extendedProfile;
 
   if (showProfileSetup) {
-    return <ProfileSetupModal open={true} />;
+    return <ProfileSetupModal />;
+  }
+
+  // Once profile is set up, clear any pending role key
+  if (extendedProfile) {
+    localStorage.removeItem(PENDING_ROLE_KEY);
   }
 
   const renderPage = () => {
@@ -85,6 +112,7 @@ function AppShell() {
         return <ComplaintsListPage />;
       case 'admin-analytics':
       case 'hod-analytics':
+      case 'staff-analytics':
         return <AnalyticsPage />;
       case 'admin-users':
         return <UserManagementPage />;

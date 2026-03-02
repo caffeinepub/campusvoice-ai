@@ -1,44 +1,161 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix sign out option and preserve complaints on account deletion",
+  "title": "Add Admin and Staff Portals",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
+      "summary": "Add Admin login flow page with role card on LandingPage that stores 'admin' as pendingRole before Internet Identity authentication",
       "acceptanceCriteria": [
-        "Clicking the sign out option in the header dropdown successfully logs the user out via Internet Identity.",
-        "Clicking the sign out option in the sidebar successfully logs the user out via Internet Identity.",
-        "After sign out, the user is redirected to the landing/login page.",
-        "No console errors occur during the sign out flow.",
-        "App state (profile, notifications, role) is cleared after sign out."
+        "A new AdminLoginFlow component exists and is reachable from the landing page",
+        "Clicking the Admin card on LandingPage navigates to the Admin login flow",
+        "The admin login flow stores 'admin' as pendingRole in localStorage before triggering Internet Identity login",
+        "After login, a user who selects admin role is directed to the admin dashboard"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AppHeader.tsx",
-          "operation": "modify",
-          "description": "Fix the logout handler in the user profile dropdown to properly call the clear() method from useInternetIdentity, clear the React Query cache via queryClient.clear(), and ensure error-free sign out flow. Ensure the logout option triggers authentication cleanup and redirects to the landing page."
+          "path": "frontend/src/components/AdminLoginFlow.tsx",
+          "operation": "create",
+          "description": "Create a new AdminLoginFlow component following the same pattern as StudentLoginFlow and HODLoginFlow. Display a campus background image (frontend/public/assets/generated/campus-bg.dim_1920x1080.png), feature benefits list specific to admin role (system-wide monitoring, user management, analytics), and an Internet Identity login button. Store 'admin' as pendingRole in localStorage before calling the login function from useInternetIdentity."
         },
         {
-          "path": "frontend/src/components/AppSidebar.tsx",
+          "path": "frontend/src/pages/LandingPage.tsx",
           "operation": "modify",
-          "description": "Fix the logout handler in the sidebar to properly call the clear() method from useInternetIdentity, clear the React Query cache via queryClient.clear(), and ensure error-free sign out flow. Ensure the logout option triggers authentication cleanup and redirects to the landing page."
+          "description": "Add a third role card for Admin alongside the existing Student and HOD/Staff cards. Include an appropriate icon, title, description, and onClick handler that navigates to '/admin-login'. Ensure the card styling matches the existing role cards."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add a route for the AdminLoginFlow component at '/admin-login' path. Wire it into the router alongside the existing StudentLoginFlow and HODLoginFlow routes. Ensure unauthenticated users can access this route."
+        },
+        {
+          "path": "frontend/src/constants/appRoles.ts",
+          "operation": "modify",
+          "description": "Verify that 'admin' is already defined in the CampusRole type and ROLE_LABELS/ROLE_COLORS lookup records. If not present, add it with appropriate label and color class."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Add Staff login flow page with role card on LandingPage that stores 'staff' as pendingRole before Internet Identity authentication",
+      "acceptanceCriteria": [
+        "A new StaffLoginFlow component exists and is reachable from the landing page",
+        "Clicking the Staff card on LandingPage navigates to the Staff login flow",
+        "The staff login flow stores 'staff' as pendingRole in localStorage before triggering Internet Identity login",
+        "After login, a user who selects staff role is directed to the staff dashboard"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/StaffLoginFlow.tsx",
+          "operation": "create",
+          "description": "Create a new StaffLoginFlow component following the same pattern as StudentLoginFlow and HODLoginFlow. Display a campus background image (frontend/public/assets/generated/campus-bg.dim_1920x1080.png), feature benefits list specific to staff role (department-scoped complaint management, analytics), and an Internet Identity login button. Store 'staff' as pendingRole in localStorage before calling the login function from useInternetIdentity."
+        },
+        {
+          "path": "frontend/src/pages/LandingPage.tsx",
+          "operation": "modify",
+          "description": "Add a fourth role card for Staff alongside the existing Student, HOD, and Admin cards. Include an appropriate icon, title, description, and onClick handler that navigates to '/staff-login'. Ensure the card styling matches the existing role cards."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add a route for the StaffLoginFlow component at '/staff-login' path. Wire it into the router alongside the existing StudentLoginFlow, HODLoginFlow, and AdminLoginFlow routes. Ensure unauthenticated users can access this route."
+        },
+        {
+          "path": "frontend/src/constants/appRoles.ts",
+          "operation": "modify",
+          "description": "Add 'staff' to the CampusRole type if not already present. Add corresponding entries in ROLE_LABELS (e.g., 'Staff') and ROLE_COLORS (e.g., 'text-purple-600') lookup records."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+      "summary": "Build Admin Portal with dashboard showing system-wide complaint statistics, full complaint list management, user management page, emergency logs, and analytics with admin-specific sidebar navigation",
       "acceptanceCriteria": [
-        "After account deletion, complaint metadata in localStorage (categories, departments, media references, feedback) is preserved.",
-        "Only user profile-specific localStorage keys are cleared on account deletion.",
-        "Emergency alert and notification localStorage entries unrelated to the deleted user are not affected."
+        "Admin dashboard shows system-wide stats: total complaints, pending, resolved, and high-priority counts",
+        "Admin can view and update status/priority for any complaint regardless of department",
+        "Admin sidebar shows navigation items for Dashboard, Complaints, Analytics, User Management, Emergency Logs",
+        "Admin portal is only accessible when campusRole is 'admin'",
+        "AppSidebar renders correct admin nav items for the admin role"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/DeleteAccountDialog.tsx",
+          "path": "frontend/src/pages/DashboardPage.tsx",
           "operation": "modify",
-          "description": "Update the account deletion flow to preserve complaint metadata in localStorage. Remove any logic that clears complaint-related localStorage keys (categories, departments, media, feedback). Only clear user profile-specific keys and authentication state. Ensure emergency alerts and notifications unrelated to the user remain intact."
+          "description": "Add admin-specific dashboard logic that fetches all complaints via getAllComplaints from useQueries. Calculate system-wide statistics: total complaints, pending count, resolved count, and high-priority count across all departments. Display these stats in a grid layout with navigation buttons to Complaints, Analytics, User Management, and Emergency Logs pages. Ensure the admin view does not filter by department or ownership."
+        },
+        {
+          "path": "frontend/src/components/AppSidebar.tsx",
+          "operation": "modify",
+          "description": "Add a conditional branch for the 'admin' campus role that renders admin-specific navigation items: Dashboard, Complaints, Analytics, User Management, Emergency Logs. Use icons and labels consistent with the existing sidebar style. Ensure the sidebar displays user profile information and logout/delete account functionality for admin users."
+        },
+        {
+          "path": "frontend/src/pages/ComplaintsListPage.tsx",
+          "operation": "modify",
+          "description": "Update the page to support admin role by fetching all complaints via getAllComplaints. Allow admin users to view and update status and priority for any complaint regardless of department. Ensure the status update action calls the appropriate mutation from useQueries. Display complaint cards with role-aware filtering and ensure CSV export includes all complaints for admin users."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Ensure the routing logic correctly directs authenticated admin users to the DashboardPage, ComplaintsListPage, AnalyticsPage, UserManagementPage, and EmergencyLogsPage. Add role guards to ensure admin pages are only accessible when campusRole is 'admin'. If an admin view is missing, add it to the view state and routing logic."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Build Staff Portal with dashboard showing department-scoped complaint statistics, department complaint management, and department-filtered analytics with staff-specific sidebar navigation",
+      "acceptanceCriteria": [
+        "Staff dashboard shows department-scoped stats: total, pending, resolved, high-priority for their department",
+        "Staff can view and update status of complaints assigned to their department",
+        "Staff sidebar shows navigation items for Dashboard, Complaints, Analytics",
+        "Staff portal is only accessible when campusRole is 'staff'",
+        "AppSidebar renders correct staff nav items for the staff role"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/DashboardPage.tsx",
+          "operation": "modify",
+          "description": "Add staff-specific dashboard logic that fetches all complaints and filters them by the staff member's department from userProfile. Calculate department-scoped statistics: total complaints, pending count, resolved count, and high-priority count for the department. Display these stats in a grid layout with navigation buttons to Complaints and Analytics pages. Ensure the staff view filters by department."
+        },
+        {
+          "path": "frontend/src/components/AppSidebar.tsx",
+          "operation": "modify",
+          "description": "Add a conditional branch for the 'staff' campus role that renders staff-specific navigation items: Dashboard, Complaints, Analytics. Use icons and labels consistent with the existing sidebar style. Ensure the sidebar displays user profile information and logout/delete account functionality for staff users."
+        },
+        {
+          "path": "frontend/src/pages/ComplaintsListPage.tsx",
+          "operation": "modify",
+          "description": "Update the page to support staff role by fetching all complaints and filtering them by the staff member's department from userProfile. Allow staff users to view and update status of complaints assigned to their department. Ensure the status update action calls the updateDepartmentComplaintStatus mutation from useQueries. Display complaint cards with department-aware filtering."
+        },
+        {
+          "path": "frontend/src/pages/AnalyticsPage.tsx",
+          "operation": "modify",
+          "description": "Update the AnalyticsPage to support staff role by filtering analytics data to show only complaints from the staff member's department. Ensure charts and AI-powered predictive analysis reflect department-scoped data for staff users."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Ensure the routing logic correctly directs authenticated staff users to the DashboardPage, ComplaintsListPage, and AnalyticsPage. Add role guards to ensure staff pages are only accessible when campusRole is 'staff'. If a staff view is missing, add it to the view state and routing logic."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Update ProfileSetupModal to allow 'admin' and 'staff' as selectable roles and ensure the role is correctly saved and encoded in the backend profile",
+      "acceptanceCriteria": [
+        "ProfileSetupModal role dropdown includes 'admin' and 'staff' as options",
+        "Selecting admin or staff role saves correctly to the backend profile",
+        "The encoded profile name string correctly encodes the admin/staff role via userProfileHelpers"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProfileSetupModal.tsx",
+          "operation": "modify",
+          "description": "Update the role dropdown select element to include 'admin' and 'staff' as options alongside the existing 'student' and 'hod' roles. Ensure the role options match the CampusRole type from appRoles.ts. Verify that the form submission correctly encodes the selected role using encodeUserProfile from userProfileHelpers.ts before calling the saveCallerUserProfile mutation."
+        },
+        {
+          "path": "frontend/src/lib/userProfileHelpers.ts",
+          "operation": "modify",
+          "description": "Verify that encodeUserProfile and decodeUserProfile functions correctly handle 'admin' and 'staff' roles in the pipe-delimited name string format. If not already supported, update the encoding/decoding logic to include these roles. Ensure the format remains consistent with the existing pattern used for 'student' and 'hod'."
         }
       ]
     }

@@ -1,56 +1,132 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T07:03:58.804Z",
+  "generatedAt": "2026-03-02T13:13:24.124Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 6,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
+        "summary": "Add a dedicated Admin login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'admin' as the pending role in localStorage before initiating Internet Identity authentication, and add an Admin role card on the LandingPage alongside the existing Student and HOD/Staff cards.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/AppHeader.tsx",
-          "frontend/src/components/AppSidebar.tsx"
+          "frontend/src/components/AdminLoginFlow.tsx",
+          "frontend/src/pages/LandingPage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/constants/appRoles.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/AppHeader.tsx",
-          "frontend/src/components/AppSidebar.tsx"
+          "frontend/src/components/AdminLoginFlow.tsx",
+          "frontend/src/pages/LandingPage.tsx",
+          "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Update the backend account deletion logic in backend/main.mo so that when a user profile is deleted, the user's complaints remain in the system and are NOT removed. Complaints should be preserved and remain accessible to HOD/admin after the submitting account is deleted.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Add a dedicated Staff login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'staff' as the pending role in localStorage before initiating Internet Identity authentication, and ensure the LandingPage includes a Staff role card entry point.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/StaffLoginFlow.tsx",
+          "frontend/src/pages/LandingPage.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/constants/appRoles.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/StaffLoginFlow.tsx",
+          "frontend/src/pages/LandingPage.tsx",
+          "frontend/src/App.tsx"
+        ]
       },
       {
         "id": "REQ-3",
-        "summary": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+        "summary": "Build a full Admin Portal with a dedicated dashboard view showing system-wide complaint statistics (total, pending, resolved, high-priority across all departments), access to full complaint list management (view, update status/priority for all complaints), user management page, emergency logs, and analytics. The admin sidebar navigation should surface all admin-specific pages.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/DeleteAccountDialog.tsx"
+          "frontend/src/pages/DashboardPage.tsx",
+          "frontend/src/components/AppSidebar.tsx",
+          "frontend/src/pages/ComplaintsListPage.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/DeleteAccountDialog.tsx"
+          "frontend/src/pages/DashboardPage.tsx",
+          "frontend/src/components/AppSidebar.tsx",
+          "frontend/src/pages/ComplaintsListPage.tsx",
+          "frontend/src/App.tsx"
         ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Build a full Staff Portal with a dedicated dashboard view showing complaints relevant to the staff member's department, ability to view and update complaint status for complaints in their department, and access to analytics filtered by their department. The staff sidebar navigation should surface all staff-specific pages.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/DashboardPage.tsx",
+          "frontend/src/components/AppSidebar.tsx",
+          "frontend/src/pages/ComplaintsListPage.tsx",
+          "frontend/src/pages/AnalyticsPage.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/DashboardPage.tsx",
+          "frontend/src/components/AppSidebar.tsx",
+          "frontend/src/pages/ComplaintsListPage.tsx",
+          "frontend/src/pages/AnalyticsPage.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Update the ProfileSetupModal to allow 'admin' and 'staff' as selectable roles during profile setup, ensuring the role is correctly saved and encoded in the backend profile via the pipe-delimited format used in userProfileHelpers.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProfileSetupModal.tsx",
+          "frontend/src/lib/userProfileHelpers.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProfileSetupModal.tsx",
+          "frontend/src/lib/userProfileHelpers.ts"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Update the backend main actor to ensure the 'staff' role is recognized in role-based permission checks alongside the existing 'admin', 'hod', and 'student' roles. Staff should be permitted to update complaint statuses for complaints in their department.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/AdminLoginFlow.tsx",
     "frontend/src/components/AppHeader.tsx",
     "frontend/src/components/AppSidebar.tsx",
-    "frontend/src/components/DeleteAccountDialog.tsx",
+    "frontend/src/components/EmergencyAlertOverlay.tsx",
+    "frontend/src/components/ProfileSetupModal.tsx",
+    "frontend/src/components/StaffLoginFlow.tsx",
+    "frontend/src/contexts/AppContext.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/userProfileHelpers.ts",
+    "frontend/src/pages/AnalyticsPage.tsx",
+    "frontend/src/pages/ComplaintsListPage.tsx",
+    "frontend/src/pages/DashboardPage.tsx",
+    "frontend/src/pages/EmergencyLogsPage.tsx",
+    "frontend/src/pages/LandingPage.tsx",
+    "frontend/src/pages/SubmitComplaintPage.tsx",
+    "frontend/src/pages/TrackComplaintsPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

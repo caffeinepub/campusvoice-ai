@@ -16,6 +16,7 @@ import {
   Shield,
   GraduationCap,
   ClipboardList,
+  Briefcase,
 } from 'lucide-react';
 import { CAMPUS_ROLE_COLORS, CAMPUS_ROLE_LABELS } from '../constants/appRoles';
 import DeleteAccountDialog from './DeleteAccountDialog';
@@ -31,7 +32,8 @@ type View =
   | 'admin-analytics'
   | 'hod-complaints'
   | 'hod-analytics'
-  | 'staff-complaints';
+  | 'staff-complaints'
+  | 'staff-analytics';
 
 interface AppSidebarProps {
   currentView: View;
@@ -53,11 +55,9 @@ export default function AppSidebar({ currentView, onNavigate, onClose }: AppSide
 
   const handleLogout = async () => {
     try {
-      // Clear React Query cache first before clearing identity
       queryClient.clear();
       await clear();
     } catch (err) {
-      // Ensure we still clear the cache even if clear() throws
       queryClient.clear();
     }
   };
@@ -77,6 +77,7 @@ export default function AppSidebar({ currentView, onNavigate, onClose }: AppSide
   const staffNav: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'staff-complaints', label: 'Department Complaints', icon: <ClipboardList className="w-4 h-4" /> },
+    { id: 'staff-analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
   ];
 
   const hodNav: NavItem[] = [
@@ -105,8 +106,8 @@ export default function AppSidebar({ currentView, onNavigate, onClose }: AppSide
   const roleIcon =
     campusRole === 'admin' ? (
       <Shield className="w-4 h-4" />
-    ) : campusRole === 'hod' ? (
-      <GraduationCap className="w-4 h-4" />
+    ) : campusRole === 'staff' ? (
+      <Briefcase className="w-4 h-4" />
     ) : (
       <GraduationCap className="w-4 h-4" />
     );

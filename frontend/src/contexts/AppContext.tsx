@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from '../hooks/useQueries';
-import { decodeProfile, type ExtendedProfile } from '../lib/userProfileHelpers';
-import type { CampusRole } from '../constants/appRoles';
+import { decodeUserProfile, getDisplayName, getCampusRole, getDepartment } from '../lib/userProfileHelpers';
 import {
   getNotifications,
   markNotificationRead,
@@ -12,53 +11,74 @@ import {
   type EmergencyAlert,
 } from '../lib/localComplaintStore';
 
+export type CampusRole = 'student' | 'hod' | 'staff' | 'admin';
+
+export interface ExtendedProfile {
+  displayName: string;
+  email: string;
+  campusRole: CampusRole;
+  department: string;
+}
+
 interface AppContextValue {
+  // Profile
   extendedProfile: ExtendedProfile | null;
   campusRole: CampusRole | null;
+  userProfile: { name: string; email: string } | null;
   isAuthenticated: boolean;
   isProfileLoading: boolean;
   isProfileFetched: boolean;
+  // Notifications
   notifications: Notification[];
   unreadCount: number;
-  emergencies: EmergencyAlert[];
-  activeEmergency: EmergencyAlert | null;
-  setActiveEmergency: (alert: EmergencyAlert | null) => void;
   refreshNotifications: () => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
+  // Emergencies
+  emergencies: EmergencyAlert[];
+  activeEmergency: EmergencyAlert | null;
+  setActiveEmergency: (alert: EmergencyAlert | null) => void;
 }
 
-const AppContext = createContext<AppContextValue | undefined>(undefined);
+const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { identity } = useInternetIdentity();
-  const { data: userProfile, isLoading, isFetched } = useGetCallerUserProfile();
+  const { data: profileData, isLoading, isFetched } = useGetCallerUserProfile();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [emergencies, setEmergencies] = useState<EmergencyAlert[]>([]);
   const [activeEmergency, setActiveEmergency] = useState<EmergencyAlert | null>(null);
+  const lastSeenEmergencyIdRef = useRef<string | null>(null);
 
   const isAuthenticated = !!identity;
 
-  const extendedProfile = userProfile ? decodeProfile(userProfile) : null;
-  const campusRole = extendedProfile?.campusRole || null;
+  // Derive extended profile from backend profile data
+  const extendedProfile: ExtendedProfile | null = profileData
+    ? {
+        displayName: getDisplayName(profileData.name),
+        email: profileData.email,
+        campusRole: getCampusRole(profileData.name),
+        department: getDepartment(profileData.name) || '',
+      }
+    : null;
 
-  // Track the last seen emergency id to avoid re-triggering on the same alert
-  const lastSeenEmergencyIdRef = useRef<string | null>(null);
+  const campusRole: CampusRole | null = extendedProfile?.campusRole ?? null;
+
+  // Simple userProfile for components that just need name/email
+  const userProfile = profileData
+    ? { name: getDisplayName(profileData.name), email: profileData.email }
+    : null;
 
   const refreshNotifications = useCallback(() => {
     setNotifications(getNotifications());
     const allEmergencies = getEmergencies();
     setEmergencies(allEmergencies);
-
-    // Auto-surface the latest unacknowledged emergency for HOD and Admin
-    // We use a ref to campusRole to avoid stale closure issues
-    return allEmergencies;
   }, []);
 
-  // Separate effect that reacts to emergencies + campusRole changes
+  // Auto-surface latest unacknowledged emergency for HOD, Admin, Staff
   useEffect(() => {
-    if (campusRole !== 'hod' && campusRole !== 'admin') return;
+    if (campusRole !== 'hod' && campusRole !== 'admin' && campusRole !== 'staff') return;
 
     const allEmergencies = getEmergencies();
     const latestUnacked = allEmergencies.find((e) => !e.acknowledged);
@@ -71,9 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refreshNotifications();
-    const interval = setInterval(() => {
-      refreshNotifications();
-    }, 5000);
+    const interval = setInterval(refreshNotifications, 5000);
     return () => clearInterval(interval);
   }, [refreshNotifications]);
 
@@ -94,17 +112,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         extendedProfile,
         campusRole,
+        userProfile,
         isAuthenticated,
         isProfileLoading: isLoading,
         isProfileFetched: isFetched,
         notifications,
         unreadCount,
-        emergencies,
-        activeEmergency,
-        setActiveEmergency,
         refreshNotifications,
         markRead,
         markAllRead,
+        emergencies,
+        activeEmergency,
+        setActiveEmergency,
       }}
     >
       {children}
@@ -113,7 +132,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAppContext() {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useAppContext must be used within AppProvider');
-  return ctx;
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useAppContext must be used within AppProvider');
+  }
+  return context;
 }

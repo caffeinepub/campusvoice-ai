@@ -22,7 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Bell, LogOut, User, AlertTriangle, ChevronDown, Menu, X, Trash2 } from 'lucide-react';
-import { playConfirmationBeep, playEmergencySiren } from '../lib/audioService';
+import { playConfirmationBeep } from '../lib/audioService';
 import {
   addEmergency,
   addNotification,
@@ -38,7 +38,7 @@ interface AppHeaderProps {
 
 export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps) {
   const { clear, identity } = useInternetIdentity();
-  const { extendedProfile, campusRole, notifications, unreadCount, markRead, markAllRead, setActiveEmergency, refreshNotifications } = useAppContext();
+  const { extendedProfile, campusRole, notifications, unreadCount, markRead, markAllRead, refreshNotifications } = useAppContext();
   const queryClient = useQueryClient();
 
   const [emergencyOpen, setEmergencyOpen] = useState(false);
@@ -48,8 +48,14 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
   const handleLogout = async () => {
-    await clear();
-    queryClient.clear();
+    try {
+      // Clear React Query cache first before clearing identity
+      queryClient.clear();
+      await clear();
+    } catch (err) {
+      // Ensure we still clear the cache even if clear() throws
+      queryClient.clear();
+    }
   };
 
   const handleEmergency = () => {
@@ -65,24 +71,22 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
       acknowledged: false,
     };
 
+    // Save the emergency to localStorage — AppContext polling will surface it
+    // to HOD and Admin automatically via the 5-second interval
     addEmergency(alert);
+
+    // Add a notification entry so it appears in the notification bell
     addNotification({
-      message: `🚨 Emergency alert sent from ${location}`,
+      message: `🚨 Emergency alert sent from ${location.trim()} by ${alert.studentName}`,
       type: 'error',
     });
 
-    // Play confirmation beep for student
+    // Play confirmation beep for the student who sent the alert
     playConfirmationBeep();
 
-    // Simulate alert to HOD/Admin (in real app, this would be via WebSocket)
-    if (campusRole === 'hod' || campusRole === 'admin') {
-      setTimeout(() => {
-        setActiveEmergency(alert);
-        playEmergencySiren(5);
-      }, 500);
-    }
-
+    // Immediately refresh so HOD/Admin on the same session see it right away
     refreshNotifications();
+
     setEmergencySent(true);
     setTimeout(() => {
       setEmergencyOpen(false);
@@ -133,7 +137,7 @@ export default function AppHeader({ onMenuToggle, sidebarOpen }: AppHeaderProps)
           </Button>
         )}
 
-        {/* Notification Bell - HOD & Admin */}
+        {/* Notification Bell - HOD, Admin & Staff */}
         {(campusRole === 'hod' || campusRole === 'admin' || campusRole === 'staff') && (
           <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
             <DropdownMenuTrigger asChild>

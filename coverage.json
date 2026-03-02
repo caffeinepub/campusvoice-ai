@@ -1,53 +1,56 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T07:58:35.320Z",
+  "generatedAt": "2026-03-02T07:03:58.804Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a `deleteAccount` backend function that permanently removes the authenticated user's profile from the canister state. The function must verify the caller's identity before deletion and return a success/error result.",
+        "summary": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AppHeader.tsx",
+          "frontend/src/components/AppSidebar.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AppHeader.tsx",
+          "frontend/src/components/AppSidebar.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update the backend account deletion logic in backend/main.mo so that when a user profile is deleted, the user's complaints remain in the system and are NOT removed. Complaints should be preserved and remain accessible to HOD/admin after the submitting account is deleted.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-2",
-        "summary": "Add a 'Delete Account' button in the user profile/settings area (e.g., within the profile menu in AppHeader or a dedicated Settings section). Clicking it must open a confirmation dialog warning the user that this action is permanent and cannot be undone. On confirmation, call the backend `deleteAccount` function, clear all local storage data for the user, log the user out via Internet Identity, and redirect to the landing page.",
+        "id": "REQ-3",
+        "summary": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/DeleteAccountDialog.tsx",
-          "frontend/src/components/AppHeader.tsx"
+          "frontend/src/components/DeleteAccountDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/DeleteAccountDialog.tsx",
-          "frontend/src/components/AppHeader.tsx"
+          "frontend/src/components/DeleteAccountDialog.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
-    "build-template/README.md",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
     "frontend/src/components/AppHeader.tsx",
+    "frontend/src/components/AppSidebar.tsx",
     "frontend/src/components/DeleteAccountDialog.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

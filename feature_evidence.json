@@ -2,12 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-delete-account-button-in-the-user-profile-settings-area-e-g-within-the-profile-menu-in-appheader-or-a-dedicated-settings-section-clicking-it-must-open-a-confirmation-dialog-warning-the-user-that-this-action-is-permanent-and-cannot-be-undone-on-confirmation-call-the-backend-deleteaccount-function-clear-all-local-storage-data-for-the-user-log-the-user-out-via-internet-identity-and-redirect-to-the-landing-page",
-      "featureTitle": "Add a 'Delete Account' button in the user profile/settings area (e.g., within the profile menu in AppHeader or a dedicated Settings section). Clicking it must open a confirmation dialog warning the user that this action is permanent and cannot be undone. On confirmation, call the backend `deleteAccount` function, clear all local storage data for the user, log the user out via Internet Identity, and redirect to the landing page.",
+      "featureId": "feature-fix-the-sign-out-logout-functionality-in-both-appheader-tsx-and-appsidebar-tsx-so-that-clicking-the-logout-sign-out-option-correctly-terminates-the-user-session-clears-relevant-app-state-and-redirects-the-user-to-the-landing-page-without-errors",
+      "featureTitle": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
       "files": [
         "frontend/src/components/AppHeader.tsx",
-        "frontend/src/components/DeleteAccountDialog.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/components/AppSidebar.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,7 +17,26 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-deleteaccountdialog-tsx-so-that-after-account-deletion-it-only-clears-the-user-s-own-profile-related-localstorage-keys-and-does-not-delete-complaint-metadata-stored-in-localcomplaintstore-for-complaints-submitted-by-that-user",
+      "featureTitle": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+      "files": [
+        "frontend/src/components/DeleteAccountDialog.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

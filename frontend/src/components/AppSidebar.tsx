@@ -1,18 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import {
   LayoutDashboard,
@@ -29,6 +18,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { CAMPUS_ROLE_COLORS, CAMPUS_ROLE_LABELS } from '../constants/appRoles';
+import DeleteAccountDialog from './DeleteAccountDialog';
 
 type View =
   | 'dashboard'
@@ -59,10 +49,17 @@ export default function AppSidebar({ currentView, onNavigate, onClose }: AppSide
   const { extendedProfile, campusRole } = useAppContext();
   const { clear } = useInternetIdentity();
   const queryClient = useQueryClient();
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
   const handleLogout = async () => {
-    await clear();
-    queryClient.clear();
+    try {
+      // Clear React Query cache first before clearing identity
+      queryClient.clear();
+      await clear();
+    } catch (err) {
+      // Ensure we still clear the cache even if clear() throws
+      queryClient.clear();
+    }
   };
 
   const navigate = (view: View) => {
@@ -185,33 +182,20 @@ export default function AppSidebar({ currentView, onNavigate, onClose }: AppSide
           Sign Out
         </button>
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button className="sidebar-nav-item w-full text-left text-red-400 hover:text-red-300 hover:bg-red-900/20">
-              <Trash2 className="w-4 h-4" />
-              Delete Account
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. Your account and all associated data will be permanently
-                removed from the system.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={handleLogout}
-              >
-                Delete Account
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <button
+          onClick={() => setDeleteAccountOpen(true)}
+          className="sidebar-nav-item w-full text-left text-red-400 hover:text-red-300 hover:bg-red-900/20"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete Account
+        </button>
       </div>
+
+      {/* Delete Account Dialog */}
+      <DeleteAccountDialog
+        open={deleteAccountOpen}
+        onOpenChange={setDeleteAccountOpen}
+      />
     </aside>
   );
 }

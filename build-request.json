@@ -1,63 +1,77 @@
 {
   "kind": "build_request",
-  "title": "Add permanent account deletion feature",
-  "projectName": "CampusVoice AI",
-  "priority": "normal",
+  "title": "Fix sign out option and preserve complaints on account deletion",
+  "projectName": "CampusVoice",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a `deleteAccount` backend function that permanently removes the authenticated user's profile from the canister state. The function must verify the caller's identity before deletion and return a success/error result.",
-      "target": "backend",
+      "text": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "add delete key to delete the account permanantly"
+          "fix the error of sign out options",
+          "Fix the sign out option"
         ]
       },
       "acceptanceCriteria": [
-        "A `deleteAccount` public shared function exists in the main actor",
-        "The function only deletes the profile belonging to the authenticated caller (by principal)",
-        "Calling the function with a valid authenticated identity removes the user profile from stable storage",
-        "Calling the function when no profile exists returns an appropriate error variant",
-        "After deletion, querying the profile for the same principal returns null/not found"
+        "Clicking the sign out option in the header dropdown successfully logs the user out via Internet Identity.",
+        "Clicking the sign out option in the sidebar successfully logs the user out via Internet Identity.",
+        "After sign out, the user is redirected to the landing/login page.",
+        "No console errors occur during the sign out flow.",
+        "App state (profile, notifications, role) is cleared after sign out."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a 'Delete Account' button in the user profile/settings area (e.g., within the profile menu in AppHeader or a dedicated Settings section). Clicking it must open a confirmation dialog warning the user that this action is permanent and cannot be undone. On confirmation, call the backend `deleteAccount` function, clear all local storage data for the user, log the user out via Internet Identity, and redirect to the landing page.",
-      "target": "frontend",
+      "text": "Update the backend account deletion logic in backend/main.mo so that when a user profile is deleted, the user's complaints remain in the system and are NOT removed. Complaints should be preserved and remain accessible to HOD/admin after the submitting account is deleted.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "add delete key to delete the account permanantly"
+          "if the account deleted the complaints remains not deleted",
+          "ensure complaints are not deleted when an account is removed"
         ]
       },
       "acceptanceCriteria": [
-        "A 'Delete Account' button is visible in the user profile menu or settings area",
-        "Clicking the button opens a modal confirmation dialog with a clear warning that deletion is permanent",
-        "The dialog has a clearly labeled destructive confirm button (e.g., 'Yes, Delete My Account') and a cancel button",
-        "On confirmation, the backend `deleteAccount` function is invoked",
-        "All user-related keys in localStorage (profile, complaints metadata, notifications, alerts) are cleared on successful deletion",
-        "The user is logged out via the Internet Identity logout flow after deletion",
-        "The user is redirected to the landing/login page after successful deletion",
-        "If the backend call fails, an error message is shown and the account is not deleted"
+        "Deleting a user account via the deleteProfile (or equivalent) backend function does not delete that user's associated complaints.",
+        "Complaints submitted by a deleted account remain visible to HOD and admin roles in the complaints list.",
+        "The complaint data (title, description, status, priority, category) is fully intact after the submitter's account is deleted."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "if the account deleted the complaints remains not deleted",
+          "ensure complaints are not deleted when an account is removed"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After account deletion, complaint metadata in localStorage (categories, departments, media references, feedback) is preserved.",
+        "Only user profile-specific localStorage keys are cleared on account deletion.",
+        "Emergency alert and notification localStorage entries unrelated to the deleted user are not affected."
       ]
     }
   ],
   "constraints": [
-    "Account deletion must only affect the authenticated caller's own data — no admin bulk-delete or deletion of other users' accounts",
-    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "Confirmation dialog must use existing Shadcn UI dialog/alert-dialog components"
+    "Do not change complaint data models or existing complaint CRUD endpoints beyond removing any cascade-delete behavior tied to user accounts.",
+    "Do not modify files listed in frontend.immutablePaths: useInternetIdentity.ts, useActor.ts, main.tsx, and frontend/src/components/ui."
   ],
   "nonGoals": [
-    "Soft-delete or account suspension — only hard permanent deletion is in scope",
-    "Deleting complaints submitted by the user from the backend (only the user profile is removed)",
-    "Admin ability to delete other users' accounts",
-    "Email or notification sent upon account deletion"
+    "Reassigning complaint ownership to another user after account deletion.",
+    "Adding any new complaint or user management features.",
+    "Changes to the emergency alert notification system."
   ],
   "imageRequirements": {
     "required": [],

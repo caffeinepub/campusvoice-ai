@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from '../hooks/useQueries';
 import { decodeProfile, type ExtendedProfile } from '../lib/userProfileHelpers';
@@ -43,14 +43,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const extendedProfile = userProfile ? decodeProfile(userProfile) : null;
   const campusRole = extendedProfile?.campusRole || null;
 
+  // Track the last seen emergency id to avoid re-triggering on the same alert
+  const lastSeenEmergencyIdRef = useRef<string | null>(null);
+
   const refreshNotifications = useCallback(() => {
     setNotifications(getNotifications());
-    setEmergencies(getEmergencies());
+    const allEmergencies = getEmergencies();
+    setEmergencies(allEmergencies);
+
+    // Auto-surface the latest unacknowledged emergency for HOD and Admin
+    // We use a ref to campusRole to avoid stale closure issues
+    return allEmergencies;
   }, []);
+
+  // Separate effect that reacts to emergencies + campusRole changes
+  useEffect(() => {
+    if (campusRole !== 'hod' && campusRole !== 'admin') return;
+
+    const allEmergencies = getEmergencies();
+    const latestUnacked = allEmergencies.find((e) => !e.acknowledged);
+
+    if (latestUnacked && latestUnacked.id !== lastSeenEmergencyIdRef.current) {
+      lastSeenEmergencyIdRef.current = latestUnacked.id;
+      setActiveEmergency(latestUnacked);
+    }
+  }, [emergencies, campusRole]);
 
   useEffect(() => {
     refreshNotifications();
-    const interval = setInterval(refreshNotifications, 5000);
+    const interval = setInterval(() => {
+      refreshNotifications();
+    }, 5000);
     return () => clearInterval(interval);
   }, [refreshNotifications]);
 

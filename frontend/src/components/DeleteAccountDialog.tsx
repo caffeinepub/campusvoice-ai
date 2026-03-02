@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useDeleteAccount } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, Trash2 } from 'lucide-react';
 
 interface DeleteAccountDialogProps {
@@ -18,20 +19,17 @@ interface DeleteAccountDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const LOCAL_STORAGE_KEYS = [
-  'campusvoice_complaints',
-  'campusvoice_notifications',
-  'campusvoice_emergencies',
+// Only clear user profile/session-specific keys.
+// Complaint metadata (campusvoice_complaint_meta), emergencies, and notifications
+// are shared/system-level data and must NOT be removed when an account is deleted.
+const USER_PROFILE_STORAGE_KEYS = [
   'campusvoice_profile',
-  'campusvoice_alerts',
-  'complaints_metadata',
-  'notifications',
-  'emergencies',
   'userProfile',
 ];
 
 export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccountDialogProps) {
   const { clear } = useInternetIdentity();
+  const queryClient = useQueryClient();
   const deleteAccountMutation = useDeleteAccount();
   const [error, setError] = useState<string | null>(null);
 
@@ -40,24 +38,19 @@ export default function DeleteAccountDialog({ open, onOpenChange }: DeleteAccoun
     try {
       await deleteAccountMutation.mutateAsync();
 
-      // Clear all local storage keys related to the user
-      LOCAL_STORAGE_KEYS.forEach((key) => {
+      // Only remove user profile-specific localStorage keys.
+      // Complaint metadata, emergencies, and notifications are preserved
+      // so that submitted complaints remain visible to HOD and Admin.
+      USER_PROFILE_STORAGE_KEYS.forEach((key) => {
         try {
           localStorage.removeItem(key);
         } catch {
-          // ignore
+          // ignore storage errors
         }
       });
 
-      // Clear everything in localStorage that starts with known prefixes
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('campusvoice') || key.startsWith('complaints') || key.startsWith('notifications') || key.startsWith('emergencies'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      // Clear React Query cache before logging out
+      queryClient.clear();
 
       // Log out the user
       await clear();

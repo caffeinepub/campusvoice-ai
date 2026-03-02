@@ -1,36 +1,44 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add permanent account deletion feature",
+  "title": "Fix sign out option and preserve complaints on account deletion",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Add a 'Delete Account' button in the user profile menu that opens a confirmation dialog and permanently deletes the user's account, clearing all local data and logging out",
+      "id": "REQ-1",
+      "summary": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
       "acceptanceCriteria": [
-        "A 'Delete Account' button is visible in the user profile menu or settings area",
-        "Clicking the button opens a modal confirmation dialog with a clear warning that deletion is permanent",
-        "The dialog has a clearly labeled destructive confirm button (e.g., 'Yes, Delete My Account') and a cancel button",
-        "On confirmation, the backend `deleteAccount` function is invoked",
-        "All user-related keys in localStorage (profile, complaints metadata, notifications, alerts) are cleared on successful deletion",
-        "The user is logged out via the Internet Identity logout flow after deletion",
-        "The user is redirected to the landing/login page after successful deletion",
-        "If the backend call fails, an error message is shown and the account is not deleted"
+        "Clicking the sign out option in the header dropdown successfully logs the user out via Internet Identity.",
+        "Clicking the sign out option in the sidebar successfully logs the user out via Internet Identity.",
+        "After sign out, the user is redirected to the landing/login page.",
+        "No console errors occur during the sign out flow.",
+        "App state (profile, notifications, role) is cleared after sign out."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add a `useDeleteAccount` mutation hook that calls the backend `deleteAccount` function and returns a TanStack Query mutation for invoking account deletion with proper error handling"
-        },
-        {
-          "path": "frontend/src/components/DeleteAccountDialog.tsx",
-          "operation": "create",
-          "description": "Create a confirmation dialog component using Shadcn UI AlertDialog that displays a warning message about permanent deletion, provides a destructive 'Yes, Delete My Account' button and a 'Cancel' button, invokes the `useDeleteAccount` mutation on confirmation, clears all localStorage keys (complaints metadata, notifications, alerts, user profile data), logs out via Internet Identity clear function, and redirects to the landing page on success. Display error messages if the backend call fails"
-        },
-        {
           "path": "frontend/src/components/AppHeader.tsx",
           "operation": "modify",
-          "description": "Add a 'Delete Account' button with a destructive red text style in the user profile dropdown menu (within the DropdownMenuContent after the existing Logout item), and wire it to open the DeleteAccountDialog component when clicked"
+          "description": "Fix the logout handler in the user profile dropdown to properly call the clear() method from useInternetIdentity, clear the React Query cache via queryClient.clear(), and ensure error-free sign out flow. Ensure the logout option triggers authentication cleanup and redirects to the landing page."
+        },
+        {
+          "path": "frontend/src/components/AppSidebar.tsx",
+          "operation": "modify",
+          "description": "Fix the logout handler in the sidebar to properly call the clear() method from useInternetIdentity, clear the React Query cache via queryClient.clear(), and ensure error-free sign out flow. Ensure the logout option triggers authentication cleanup and redirects to the landing page."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+      "acceptanceCriteria": [
+        "After account deletion, complaint metadata in localStorage (categories, departments, media references, feedback) is preserved.",
+        "Only user profile-specific localStorage keys are cleared on account deletion.",
+        "Emergency alert and notification localStorage entries unrelated to the deleted user are not affected."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/DeleteAccountDialog.tsx",
+          "operation": "modify",
+          "description": "Update the account deletion flow to preserve complaint metadata in localStorage. Remove any logic that clears complaint-related localStorage keys (categories, departments, media, feedback). Only clear user profile-specific keys and authentication state. Ensure emergency alerts and notifications unrelated to the user remain intact."
         }
       ]
     }

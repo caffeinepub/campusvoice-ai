@@ -1,16 +1,27 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Campus Complaint Management System with role-based access, dashboards, and complaint flows. Includes permanent account deletion feature.",
+  "summary": "Project involves a complaints management system with HOD and admin alert notifications, sign-out functionality, and account/complaint management.",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Sign out option has a bug that needs fixing",
+    "Complaints are incorrectly deleted when associated account is removed"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-add-a-delete-account-button-in-the-user-profile-settings-area-e-g-within-the-profile-menu-in-appheader-or-a-dedicated-settings-section-clicking-it-must-open-a-confirmation-dialog-warning-the-user-that-this-action-is-permanent-and-cannot-be-undone-on-confirmation-call-the-backend-deleteaccount-function-clear-all-local-storage-data-for-the-user-log-the-user-out-via-internet-identity-and-redirect-to-the-landing-page",
-      "title": "Add a 'Delete Account' button in the user profile/settings area (e.g., within the profile menu in AppHeader or a dedicated Settings section). Clicking it must open a confirmation dialog warning the user that this action is permanent and cannot be undone. On confirmation, call the backend `deleteAccount` function, clear all local storage data for the user, log the user out via Internet Identity, and redirect to the landing page.",
+      "id": "feature-fix-the-sign-out-logout-functionality-in-both-appheader-tsx-and-appsidebar-tsx-so-that-clicking-the-logout-sign-out-option-correctly-terminates-the-user-session-clears-relevant-app-state-and-redirects-the-user-to-the-landing-page-without-errors",
+      "title": "Fix the sign out (logout) functionality in both AppHeader.tsx and AppSidebar.tsx so that clicking the logout/sign out option correctly terminates the user session, clears relevant app state, and redirects the user to the landing page without errors.",
       "reqIds": [
-        "REQ-2"
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-deleteaccountdialog-tsx-so-that-after-account-deletion-it-only-clears-the-user-s-own-profile-related-localstorage-keys-and-does-not-delete-complaint-metadata-stored-in-localcomplaintstore-for-complaints-submitted-by-that-user",
+      "title": "Update DeleteAccountDialog.tsx so that after account deletion, it only clears the user's own profile-related localStorage keys and does NOT delete complaint metadata stored in localComplaintStore for complaints submitted by that user.",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
@@ -18,21 +29,27 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add a delete key/button to permanently delete user accounts",
+      "summary": "Fix sign out option bug",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Add a `deleteAccount` backend function that permanently removes the authenticated user's profile from the canister state. The function must verify the caller's identity before deletion and return a success/error result.",
+      "summary": "Ensure complaints are not deleted when an account is removed",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Update the backend account deletion logic in backend/main.mo so that when a user profile is deleted, the user's complaints remain in the system and are NOT removed. Complaints should be preserved and remain accessible to HOD/admin after the submitting account is deleted.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Campus Complaint Management System",
+  "projectName": "CampusVoice",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

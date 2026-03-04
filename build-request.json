@@ -1,134 +1,59 @@
 {
   "kind": "build_request",
-  "title": "Add Admin and Staff Portals",
-  "projectName": "CampusVoice AI",
+  "title": "Populate department list with full academic department data",
+  "projectName": "CampusVoice",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Add a dedicated Admin login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'admin' as the pending role in localStorage before initiating Internet Identity authentication, and add an Admin role card on the LandingPage alongside the existing Student and HOD/Staff cards.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "add both admin and staff portal also"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A new AdminLoginFlow component exists and is reachable from the landing page",
-        "Clicking the Admin card on LandingPage navigates to the Admin login flow",
-        "The admin login flow stores 'admin' as pendingRole in localStorage before triggering Internet Identity login",
-        "After login, a user who selects admin role is directed to the admin dashboard"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Add a dedicated Staff login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'staff' as the pending role in localStorage before initiating Internet Identity authentication, and ensure the LandingPage includes a Staff role card entry point.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "add both admin and staff portal also"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A new StaffLoginFlow component exists and is reachable from the landing page",
-        "Clicking the Staff card on LandingPage navigates to the Staff login flow",
-        "The staff login flow stores 'staff' as pendingRole in localStorage before triggering Internet Identity login",
-        "After login, a user who selects staff role is directed to the staff dashboard"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Build a full Admin Portal with a dedicated dashboard view showing system-wide complaint statistics (total, pending, resolved, high-priority across all departments), access to full complaint list management (view, update status/priority for all complaints), user management page, emergency logs, and analytics. The admin sidebar navigation should surface all admin-specific pages.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "add both admin and staff portal also"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin dashboard shows system-wide stats: total complaints, pending, resolved, and high-priority counts",
-        "Admin can view and update status/priority for any complaint regardless of department",
-        "Admin sidebar shows navigation items for Dashboard, Complaints, Analytics, User Management, Emergency Logs",
-        "Admin portal is only accessible when campusRole is 'admin'",
-        "AppSidebar renders correct admin nav items for the admin role"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Build a full Staff Portal with a dedicated dashboard view showing complaints relevant to the staff member's department, ability to view and update complaint status for complaints in their department, and access to analytics filtered by their department. The staff sidebar navigation should surface all staff-specific pages.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "add both admin and staff portal also"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Staff dashboard shows department-scoped stats: total, pending, resolved, high-priority for their department",
-        "Staff can view and update status of complaints assigned to their department",
-        "Staff sidebar shows navigation items for Dashboard, Complaints, Analytics",
-        "Staff portal is only accessible when campusRole is 'staff'",
-        "AppSidebar renders correct staff nav items for the staff role"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Update the ProfileSetupModal to allow 'admin' and 'staff' as selectable roles during profile setup, ensuring the role is correctly saved and encoded in the backend profile via the pipe-delimited format used in userProfileHelpers.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "add both admin and staff portal also"
-        ]
-      },
-      "acceptanceCriteria": [
-        "ProfileSetupModal role dropdown includes 'admin' and 'staff' as options",
-        "Selecting admin or staff role saves correctly to the backend profile",
-        "The encoded profile name string correctly encodes the admin/staff role via userProfileHelpers"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Update the backend main actor to ensure the 'staff' role is recognized in role-based permission checks alongside the existing 'admin', 'hod', and 'student' roles. Staff should be permitted to update complaint statuses for complaints in their department.",
+      "text": "Replace the current backend department seed/initial data with the full list of academic departments grouped by faculty. The departments must be pre-populated (or seeded on first deploy) with the following entries:\n\n**Computer Science Faculty (UG):** B.Sc. - Computer Science, BCA (Bachelor of Computer Applications), B.Sc. - Information Technology, B.Sc. - Computer Technology, B.Sc. - Data Science, B.Sc. - Computer Science(AI & ML), B.Sc. - Computer Science(AI), B.Sc. - Computer Science(AI & Data Science), B.Sc. - Computer Science(Cyber Security)\n**Computer Science Faculty (PG):** M.Sc. - Computer Science\n\n**Life Sciences Faculty (UG):** B.Sc. - Biotechnology, B.Sc. - Biochemistry, B.Sc. - Microbiology, B.Sc. - Zoology, B.Sc. - Clinical Laboratory Technology\n**Life Sciences Faculty (PG):** M.Sc. - Biotechnology, M.Sc. - Biochemistry, M.Sc. – Microbiology\n\n**Physical Sciences Faculty (UG):** B.Sc. - Physics, B.Sc. - Chemistry, B.Sc. - Mathematics, B.Sc. - Statistics, B.Sc. - Electronics & Communication, B.Sc. - Internet of Things\n**Physical Sciences Faculty (PG):** M.Sc - Physics, M.Sc. - Chemistry, M.Sc. - Mathematics\n\n**Commerce & Management Faculty (UG):** B.Com, B.Com (CA), B.Com (PA), B.Com (IT), B.B.A.\n**Commerce & Management Faculty (PG):** M.Com\n\n**Arts & Applied Sciences Faculty (UG):** B.A. - English, B.Sc. - Hotel Management & Catering Science, B.Sc. - Textile and Fashion Design\n**Arts & Applied Sciences Faculty (PG):** M.A., - English\n\nEach department entry should include its name and a description derived from its faculty group (e.g., \"Computer Science Faculty – UG\").",
       "target": "backend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "add both admin and staff portal also"
+          "UG\nB.Sc. - Computer Science\nBCA (Bachelor of Computer Applications)...",
+          "give this as dept"
         ]
       },
       "acceptanceCriteria": [
-        "The backend CampusRole type or equivalent includes 'staff' as a valid role",
-        "Permission checks allow staff to update complaint status",
-        "Admin retains full access to all complaint operations"
+        "All 30+ departments listed by the user are present in the backend department store after deployment.",
+        "Each department has a non-empty name matching the user-provided list exactly.",
+        "Each department has a description indicating its faculty group and level (UG/PG).",
+        "Existing complaints and access control state are not affected.",
+        "The admin Department Management page displays all seeded departments."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the frontend department dropdown in the complaint submission form and the profile setup modal to display all departments from the backend, ensuring the full seeded list (30+ entries) is rendered correctly without truncation or layout issues.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "give this as dept"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The department dropdown in SubmitComplaintPage shows all 30+ departments.",
+        "The department dropdown in ProfileSetupModal shows all 30+ departments.",
+        "Dropdowns are scrollable and no department name is cut off.",
+        "Selecting any department from the list correctly saves/submits the selection."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "Admin and staff login flows must follow the same Internet Identity authentication pattern as StudentLoginFlow and HODLoginFlow",
-    "Role encoding must use the existing pipe-delimited format in userProfileHelpers.ts"
+    "Do not alter existing complaint or access control data structures.",
+    "Do not modify files listed in frontend.immutablePaths.",
+    "Department names must match the user-provided list exactly, including punctuation and abbreviations."
   ],
   "nonGoals": [
-    "Separate backend deployments or microservices for admin/staff",
-    "Third-party authentication providers",
-    "Real-time notifications via WebSockets",
-    "Email or SMS alerts for admin/staff"
+    "Adding new UI pages or redesigning existing pages.",
+    "Changing the role-based access control logic.",
+    "Adding faculty-group filtering UI (only flat list required for now)."
   ],
   "imageRequirements": {
     "required": [],

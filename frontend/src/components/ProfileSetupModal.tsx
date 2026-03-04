@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useSaveCallerUserProfile } from '../hooks/useQueries';
+import { useSaveCallerUserProfile, useListDepartments } from '../hooks/useQueries';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, User } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, User, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { encodeUserProfile } from '../lib/userProfileHelpers';
 
@@ -16,7 +17,10 @@ export default function ProfileSetupModal() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<CampusRole>('student');
   const [department, setDepartment] = useState('');
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<bigint | undefined>(undefined);
+
   const saveProfileMutation = useSaveCallerUserProfile();
+  const { data: departments, isLoading: depsLoading } = useListDepartments();
 
   // Pre-fill role from localStorage pending role
   useEffect(() => {
@@ -25,6 +29,19 @@ export default function ProfileSetupModal() {
       setRole(pendingRole);
     }
   }, []);
+
+  // When a department is selected from the dropdown, also set the text name
+  const handleDepartmentSelect = (value: string) => {
+    if (value === '__none__') {
+      setSelectedDepartmentId(undefined);
+      setDepartment('');
+      return;
+    }
+    const id = BigInt(value);
+    setSelectedDepartmentId(id);
+    const found = departments?.find((d) => d.id === id);
+    if (found) setDepartment(found.name);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,16 +53,18 @@ export default function ProfileSetupModal() {
       toast.error('Please enter your email');
       return;
     }
-    if ((role === 'hod' || role === 'staff') && !department.trim()) {
-      toast.error('Please enter your department');
-      return;
-    }
 
     try {
-      const encodedName = encodeUserProfile({ name: name.trim(), role, department: department.trim() });
+      const encodedName = encodeUserProfile({
+        name: name.trim(),
+        role,
+        department: department.trim(),
+        departmentId: selectedDepartmentId,
+      });
       await saveProfileMutation.mutateAsync({
         name: encodedName,
         email: email.trim(),
+        departmentId: selectedDepartmentId,
       });
       localStorage.removeItem('campusvoice_pending_role');
       toast.success('Profile saved successfully!');
@@ -54,7 +73,7 @@ export default function ProfileSetupModal() {
     }
   };
 
-  const showDepartmentField = role === 'hod' || role === 'staff';
+  const hasDepartments = departments && departments.length > 0;
 
   return (
     <Dialog open={true}>
@@ -110,18 +129,39 @@ export default function ProfileSetupModal() {
             </Select>
           </div>
 
-          {showDepartmentField && (
-            <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
-              <Input
-                id="department"
-                placeholder="e.g. Computer Science, Engineering"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                required
-              />
-            </div>
-          )}
+          {/* Department selection */}
+          <div className="space-y-2">
+            <Label htmlFor="department" className="flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+              Department
+              <span className="text-muted-foreground text-xs">(optional)</span>
+            </Label>
+            {depsLoading ? (
+              <Skeleton className="h-10 w-full rounded-md" />
+            ) : hasDepartments ? (
+              <Select
+                value={selectedDepartmentId !== undefined ? selectedDepartmentId.toString() : '__none__'}
+                onValueChange={handleDepartmentSelect}
+              >
+                <SelectTrigger id="department">
+                  <SelectValue placeholder="Select your department" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72 overflow-y-auto">
+                  <SelectItem value="__none__">— No department —</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id.toString()} value={dept.id.toString()}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted/40 text-sm text-muted-foreground">
+                <Building2 className="w-4 h-4 flex-shrink-0" />
+                No departments available yet
+              </div>
+            )}
+          </div>
 
           <Button
             type="submit"

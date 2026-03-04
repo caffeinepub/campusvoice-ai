@@ -7,11 +7,13 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export type Time = bigint;
-export interface UserProfile {
+export interface Department {
+    id: bigint;
+    headOfDepartment?: Principal;
     name: string;
-    email: string;
+    description: string;
 }
+export type Time = bigint;
 export interface Complaint {
     id: string;
     status: ComplaintStatus;
@@ -19,6 +21,11 @@ export interface Complaint {
     createdAt: Time;
     description: string;
     priority: Priority;
+}
+export interface UserProfile {
+    name: string;
+    email: string;
+    departmentId?: bigint;
 }
 export enum ComplaintStatus {
     resolved = "resolved",
@@ -37,44 +44,26 @@ export enum UserRole {
 }
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    /**
-     * / Authenticated users only: submit a new complaint on behalf of themselves.
-     * / The studentId is taken from the caller principal, not a parameter, so a
-     * / user cannot file a complaint under someone else's identity.
-     */
     createComplaint(id: string, description: string, priority: Priority): Promise<void>;
+    createDepartment(id: bigint, name: string, description: string, headOfDepartment: Principal | null): Promise<void>;
     deleteAccount(): Promise<string>;
-    /**
-     * / Admin-only: view every complaint in the system.
-     */
+    deleteDepartment(id: bigint): Promise<void>;
+    findUsersByDepartmentId(departmentId: bigint | null): Promise<Array<UserProfile>>;
     getAllComplaints(): Promise<Array<Complaint>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    /**
-     * / Authenticated users can fetch a complaint they own; admins can fetch any.
-     */
     getComplaintById(id: string): Promise<Complaint>;
-    /**
-     * / Admin-only: filter complaints by status.
-     */
+    getComplaintsByDepartment(): Promise<Array<Complaint>>;
     getComplaintsByStatus(status: ComplaintStatus): Promise<Array<Complaint>>;
-    /**
-     * / Returns all complaints belonging to the caller.
-     * / Admins may pass any principal; regular users may only query themselves.
-     */
     getComplaintsByStudent(student: Principal): Promise<Array<Complaint>>;
-    /**
-     * / Sort complaints by status and creation time, not just time.
-     */
+    getDepartment(id: bigint): Promise<Department>;
+    getDepartmentCount(): Promise<bigint>;
+    getDepartmentsByHeadOfDepartment(head: Principal): Promise<Array<Department>>;
     getSortedComplaints(): Promise<Array<Complaint>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    listDepartments(): Promise<Array<Department>>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    /**
-     * / Admins, HODs, and staff (all authenticated #user and #admin role holders)
-     * / can update complaint statuses for complaints in their department.
-     * / Guests are excluded. Only authenticated users (#user) and admins (#admin)
-     * / are permitted, as the access control module supports #admin, #user, #guest.
-     */
+    updateDepartment(id: bigint, name: string, description: string, headOfDepartment: Principal | null): Promise<void>;
     updateDepartmentComplaintStatus(id: string, newStatus: ComplaintStatus): Promise<void>;
 }

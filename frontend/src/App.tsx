@@ -15,6 +15,7 @@ import ComplaintsListPage from './pages/ComplaintsListPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import UserManagementPage from './pages/UserManagementPage';
 import EmergencyLogsPage from './pages/EmergencyLogsPage';
+import DepartmentManagementPage from './pages/DepartmentManagementPage';
 import StudentLoginFlow from './components/StudentLoginFlow';
 import HODLoginFlow from './components/HODLoginFlow';
 import AdminLoginFlow from './components/AdminLoginFlow';
@@ -32,6 +33,7 @@ type View =
   | 'admin-users'
   | 'admin-emergencies'
   | 'admin-analytics'
+  | 'admin-departments'
   | 'hod-complaints'
   | 'hod-analytics'
   | 'staff-complaints'
@@ -118,6 +120,8 @@ function AppShell() {
         return <UserManagementPage />;
       case 'admin-emergencies':
         return <EmergencyLogsPage />;
+      case 'admin-departments':
+        return campusRole === 'admin' ? <DepartmentManagementPage /> : <DashboardPage onNavigate={setCurrentView} />;
       default:
         return <DashboardPage onNavigate={setCurrentView} />;
     }
@@ -179,10 +183,12 @@ function AppShell() {
         </main>
       </div>
 
-      {/* Global overlays */}
-      <EmergencyAlertOverlay />
+      {/* Emergency Alert Overlay for HOD/Admin/Staff */}
+      {(campusRole === 'hod' || campusRole === 'admin' || campusRole === 'staff') && (
+        <EmergencyAlertOverlay />
+      )}
 
-      {/* AI Chatbot - only for students */}
+      {/* AI Chatbot for students */}
       {campusRole === 'student' && <AIChatbot />}
     </div>
   );

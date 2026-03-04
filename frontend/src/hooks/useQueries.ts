@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { type UserProfile, type Complaint, ComplaintStatus, Priority } from '../backend';
+import { type UserProfile, type Complaint, type Department, ComplaintStatus, Priority } from '../backend';
 import { useInternetIdentity } from './useInternetIdentity';
 import type { Principal } from '@dfinity/principal';
 
@@ -159,5 +159,100 @@ export function useIsAdmin() {
       return actor.isCallerAdmin();
     },
     enabled: !!actor && !actorFetching && !!identity,
+  });
+}
+
+// ─── Departments ─────────────────────────────────────────────────────────────
+
+export function useListDepartments() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<Department[]>({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.listDepartments();
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+  });
+}
+
+export function useGetDepartment(id: bigint | undefined) {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<Department | null>({
+    queryKey: ['department', id?.toString()],
+    queryFn: async () => {
+      if (!actor || id === undefined) return null;
+      return actor.getDepartment(id);
+    },
+    enabled: !!actor && !actorFetching && !!identity && id !== undefined,
+  });
+}
+
+export function useCreateDepartment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      name,
+      description,
+      headOfDepartment,
+    }: {
+      id: bigint;
+      name: string;
+      description: string;
+      headOfDepartment: Principal | null;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.createDepartment(id, name, description, headOfDepartment);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+    },
+  });
+}
+
+export function useUpdateDepartment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      name,
+      description,
+      headOfDepartment,
+    }: {
+      id: bigint;
+      name: string;
+      description: string;
+      headOfDepartment: Principal | null;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateDepartment(id, name, description, headOfDepartment);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+    },
+  });
+}
+
+export function useDeleteDepartment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.deleteDepartment(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+    },
   });
 }

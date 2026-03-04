@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../contexts/AppContext';
-import { useCreateComplaint } from '../hooks/useQueries';
+import { useCreateComplaint, useListDepartments } from '../hooks/useQueries';
 import { Priority } from '../backend';
 import { generateComplaintId, formatDeadline } from '../lib/complaintHelpers';
 import { saveLocalMeta, type MediaItem } from '../lib/localComplaintStore';
@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Loader2,
   Sparkles,
@@ -22,6 +22,7 @@ import {
   Clock,
   Info,
   FilePlus,
+  Building2,
 } from 'lucide-react';
 import { addNotification } from '../lib/localComplaintStore';
 
@@ -34,6 +35,7 @@ type View =
   | 'admin-users'
   | 'admin-emergencies'
   | 'admin-analytics'
+  | 'admin-departments'
   | 'hod-complaints'
   | 'hod-analytics'
   | 'staff-complaints'
@@ -46,9 +48,11 @@ interface SubmitComplaintPageProps {
 export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageProps) {
   const { extendedProfile } = useAppContext();
   const createComplaint = useCreateComplaint();
+  const { data: departments, isLoading: depsLoading } = useListDepartments();
 
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [selectedDeptId, setSelectedDeptId] = useState<string>('');
   const [priority, setPriority] = useState<Priority>(Priority.medium);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
@@ -62,6 +66,15 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
   } | null>(null);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [error, setError] = useState('');
+
+  // Resolve department name for display/storage
+  const selectedDeptName = (() => {
+    if (selectedDeptId && departments) {
+      const found = departments.find((d) => d.id.toString() === selectedDeptId);
+      return found?.name || '';
+    }
+    return extendedProfile?.department || 'General';
+  })();
 
   const handleAnalyzeWithAI = useCallback(async () => {
     if (!description.trim()) return;
@@ -112,7 +125,7 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
       saveLocalMeta({
         id: complaintId,
         category,
-        department: extendedProfile?.department || 'General',
+        department: selectedDeptName,
         isAnonymous,
         studentName: isAnonymous ? 'Anonymous' : extendedProfile?.displayName || 'Unknown',
         studentPrincipal: '',
@@ -156,6 +169,10 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
                 <span className="font-medium">{category}</span>
               </div>
               <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Department</span>
+                <span className="font-medium">{selectedDeptName}</span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Priority</span>
                 <span className="font-medium capitalize">{priority}</span>
               </div>
@@ -180,6 +197,7 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
                   setSubmitted(null);
                   setDescription('');
                   setCategory('');
+                  setSelectedDeptId('');
                   setPriority(Priority.medium);
                   setIsAnonymous(false);
                   setMediaItems([]);
@@ -254,8 +272,8 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
                   </div>
                 )}
                 {aiResult.imageAnalysis && (
-                  <div className="text-xs text-amber-800 dark:text-amber-300 border-t border-amber-200 dark:border-amber-800 pt-2">
-                    <strong>Image Analysis:</strong> {aiResult.imageAnalysis}
+                  <div className="text-xs text-amber-800 dark:text-amber-300">
+                    <span className="font-semibold">Image: </span>{aiResult.imageAnalysis}
                   </div>
                 )}
               </div>
@@ -263,19 +281,20 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
           </CardContent>
         </Card>
 
-        {/* Category & Priority */}
+        {/* Category & Department */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Category & Priority</CardTitle>
+            <CardTitle className="text-base">Category & Department</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="category">Complaint Category *</Label>
-              <Select value={category} onValueChange={setCategory} required>
-                <SelectTrigger id="category">
+            {/* Category */}
+            <div className="space-y-2">
+              <Label>Complaint Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
-                <SelectContent className="max-h-72">
+                <SelectContent className="max-h-64 overflow-y-auto">
                   {Object.entries(CATEGORY_GROUPS).map(([group, cats]) => (
                     <SelectGroup key={group}>
                       <SelectLabel>{group}</SelectLabel>
@@ -290,31 +309,67 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
               </Select>
             </div>
 
+            {/* Department */}
             <div className="space-y-2">
-              <Label>Priority Level</Label>
-              <RadioGroup
-                value={priority}
-                onValueChange={(v) => setPriority(v as Priority)}
-                className="flex gap-4"
-              >
-                {[
-                  { value: Priority.high, label: 'High', color: 'text-red-600', desc: '1 day' },
-                  { value: Priority.medium, label: 'Medium', color: 'text-amber-600', desc: '3 days' },
-                  { value: Priority.low, label: 'Low', color: 'text-green-600', desc: '7 days' },
-                ].map((p) => (
-                  <div key={p.value} className="flex items-center gap-2">
-                    <RadioGroupItem value={p.value} id={`priority-${p.value}`} />
-                    <Label htmlFor={`priority-${p.value}`} className="cursor-pointer">
-                      <span className={`font-medium ${p.color}`}>{p.label}</span>
-                      <span className="text-xs text-muted-foreground ml-1">({p.desc})</span>
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">
-                <Clock className="w-3.5 h-3.5" />
-                Deadline: <strong>{formatDeadline(priority)}</strong>
-              </div>
+              <Label className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                Department
+                <span className="text-muted-foreground text-xs">(optional)</span>
+              </Label>
+              {depsLoading ? (
+                <Skeleton className="h-10 w-full rounded-md" />
+              ) : departments && departments.length > 0 ? (
+                <Select value={selectedDeptId} onValueChange={setSelectedDeptId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72 overflow-y-auto">
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id.toString()} value={dept.id.toString()}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-muted/40 text-sm text-muted-foreground">
+                  <Building2 className="w-4 h-4 flex-shrink-0" />
+                  {extendedProfile?.department
+                    ? `Using your department: ${extendedProfile.department}`
+                    : 'No departments configured yet'}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Priority */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Priority Level</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup
+              value={priority}
+              onValueChange={(val) => setPriority(val as Priority)}
+              className="grid grid-cols-3 gap-3"
+            >
+              {[
+                { value: Priority.low, label: 'Low', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800' },
+                { value: Priority.medium, label: 'Medium', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800' },
+                { value: Priority.high, label: 'High', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800' },
+              ].map(({ value, label, color, bg }) => (
+                <div key={value} className={`relative flex items-center justify-center rounded-xl border-2 p-3 cursor-pointer transition-all ${priority === value ? bg + ' border-current' : 'border-border hover:border-muted-foreground/30'}`}>
+                  <RadioGroupItem value={value} id={`priority-${value}`} className="sr-only" />
+                  <label htmlFor={`priority-${value}`} className={`text-sm font-semibold cursor-pointer ${priority === value ? color : 'text-muted-foreground'}`}>
+                    {label}
+                  </label>
+                </div>
+              ))}
+            </RadioGroup>
+            <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+              <Clock className="w-3 h-3" />
+              Deadline: {formatDeadline(priority)}
             </div>
           </CardContent>
         </Card>
@@ -322,23 +377,23 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
         {/* Media */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Evidence & Media</CardTitle>
+            <CardTitle className="text-base">Attachments</CardTitle>
           </CardHeader>
           <CardContent>
             <MediaUploader mediaItems={mediaItems} onChange={setMediaItems} />
           </CardContent>
         </Card>
 
-        {/* Anonymous Mode */}
+        {/* Anonymous */}
         <Card>
-          <CardContent className="py-4">
+          <CardContent className="pt-4 pb-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="anonymous" className="text-sm font-medium cursor-pointer">
-                  Anonymous Submission
+                <Label htmlFor="anonymous" className="text-sm font-medium">
+                  Submit Anonymously
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Hide your identity from Staff and HOD
+                  Your identity will not be revealed to staff
                 </p>
               </div>
               <Switch
@@ -348,31 +403,37 @@ export default function SubmitComplaintPage({ onNavigate }: SubmitComplaintPageP
               />
             </div>
             {isAnonymous && (
-              <div className="mt-3 flex items-start gap-2 text-xs text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/20 rounded-lg px-3 py-2">
+              <div className="mt-3 flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg p-2.5">
                 <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                Your identity will be hidden from Staff and HOD. Admin can view your identity if required for investigation.
+                <span>Your complaint will be submitted without your name or identity.</span>
               </div>
             )}
           </CardContent>
         </Card>
 
         {error && (
-          <p className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">{error}</p>
+          <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive flex items-center gap-2">
+            <Info className="w-4 h-4 flex-shrink-0" />
+            {error}
+          </div>
         )}
 
         <Button
           type="submit"
-          size="lg"
           className="w-full"
+          size="lg"
           disabled={createComplaint.isPending}
         >
           {createComplaint.isPending ? (
             <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Submitting...
             </>
           ) : (
-            'Submit Complaint'
+            <>
+              <FilePlus className="w-4 h-4 mr-2" />
+              Submit Complaint
+            </>
           )}
         </Button>
       </form>

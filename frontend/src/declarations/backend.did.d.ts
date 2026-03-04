@@ -21,56 +21,57 @@ export interface Complaint {
 export type ComplaintStatus = { 'resolved' : null } |
   { 'inProgress' : null } |
   { 'registered' : null };
+export interface Department {
+  'id' : bigint,
+  'headOfDepartment' : [] | [Principal],
+  'name' : string,
+  'description' : string,
+}
 export type Priority = { 'low' : null } |
   { 'high' : null } |
   { 'medium' : null };
 export type Time = bigint;
-export interface UserProfile { 'name' : string, 'email' : string }
+export interface UserProfile {
+  'name' : string,
+  'email' : string,
+  'departmentId' : [] | [bigint],
+}
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  /**
-   * / Authenticated users only: submit a new complaint on behalf of themselves.
-   * / The studentId is taken from the caller principal, not a parameter, so a
-   * / user cannot file a complaint under someone else's identity.
-   */
   'createComplaint' : ActorMethod<[string, string, Priority], undefined>,
+  'createDepartment' : ActorMethod<
+    [bigint, string, string, [] | [Principal]],
+    undefined
+  >,
   'deleteAccount' : ActorMethod<[], string>,
-  /**
-   * / Admin-only: view every complaint in the system.
-   */
+  'deleteDepartment' : ActorMethod<[bigint], undefined>,
+  'findUsersByDepartmentId' : ActorMethod<[[] | [bigint]], Array<UserProfile>>,
   'getAllComplaints' : ActorMethod<[], Array<Complaint>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
-  /**
-   * / Authenticated users can fetch a complaint they own; admins can fetch any.
-   */
   'getComplaintById' : ActorMethod<[string], Complaint>,
-  /**
-   * / Admin-only: filter complaints by status.
-   */
+  'getComplaintsByDepartment' : ActorMethod<[], Array<Complaint>>,
   'getComplaintsByStatus' : ActorMethod<[ComplaintStatus], Array<Complaint>>,
-  /**
-   * / Returns all complaints belonging to the caller.
-   * / Admins may pass any principal; regular users may only query themselves.
-   */
   'getComplaintsByStudent' : ActorMethod<[Principal], Array<Complaint>>,
-  /**
-   * / Sort complaints by status and creation time, not just time.
-   */
+  'getDepartment' : ActorMethod<[bigint], Department>,
+  'getDepartmentCount' : ActorMethod<[], bigint>,
+  'getDepartmentsByHeadOfDepartment' : ActorMethod<
+    [Principal],
+    Array<Department>
+  >,
   'getSortedComplaints' : ActorMethod<[], Array<Complaint>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'listDepartments' : ActorMethod<[], Array<Department>>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  /**
-   * / Admins, HODs, and staff (all authenticated #user and #admin role holders)
-   * / can update complaint statuses for complaints in their department.
-   * / Guests are excluded. Only authenticated users (#user) and admins (#admin)
-   * / are permitted, as the access control module supports #admin, #user, #guest.
-   */
+  'updateDepartment' : ActorMethod<
+    [bigint, string, string, [] | [Principal]],
+    undefined
+  >,
   'updateDepartmentComplaintStatus' : ActorMethod<
     [string, ComplaintStatus],
     undefined

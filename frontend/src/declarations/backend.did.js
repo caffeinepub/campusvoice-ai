@@ -18,6 +18,11 @@ export const Priority = IDL.Variant({
   'high' : IDL.Null,
   'medium' : IDL.Null,
 });
+export const UserProfile = IDL.Record({
+  'name' : IDL.Text,
+  'email' : IDL.Text,
+  'departmentId' : IDL.Opt(IDL.Nat),
+});
 export const ComplaintStatus = IDL.Variant({
   'resolved' : IDL.Null,
   'inProgress' : IDL.Null,
@@ -32,20 +37,34 @@ export const Complaint = IDL.Record({
   'description' : IDL.Text,
   'priority' : Priority,
 });
-export const UserProfile = IDL.Record({
+export const Department = IDL.Record({
+  'id' : IDL.Nat,
+  'headOfDepartment' : IDL.Opt(IDL.Principal),
   'name' : IDL.Text,
-  'email' : IDL.Text,
+  'description' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createComplaint' : IDL.Func([IDL.Text, IDL.Text, Priority], [], []),
+  'createDepartment' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text, IDL.Opt(IDL.Principal)],
+      [],
+      [],
+    ),
   'deleteAccount' : IDL.Func([], [IDL.Text], []),
+  'deleteDepartment' : IDL.Func([IDL.Nat], [], []),
+  'findUsersByDepartmentId' : IDL.Func(
+      [IDL.Opt(IDL.Nat)],
+      [IDL.Vec(UserProfile)],
+      ['query'],
+    ),
   'getAllComplaints' : IDL.Func([], [IDL.Vec(Complaint)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getComplaintById' : IDL.Func([IDL.Text], [Complaint], ['query']),
+  'getComplaintsByDepartment' : IDL.Func([], [IDL.Vec(Complaint)], ['query']),
   'getComplaintsByStatus' : IDL.Func(
       [ComplaintStatus],
       [IDL.Vec(Complaint)],
@@ -56,6 +75,13 @@ export const idlService = IDL.Service({
       [IDL.Vec(Complaint)],
       ['query'],
     ),
+  'getDepartment' : IDL.Func([IDL.Nat], [Department], ['query']),
+  'getDepartmentCount' : IDL.Func([], [IDL.Nat], ['query']),
+  'getDepartmentsByHeadOfDepartment' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(Department)],
+      ['query'],
+    ),
   'getSortedComplaints' : IDL.Func([], [IDL.Vec(Complaint)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
@@ -63,7 +89,13 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'listDepartments' : IDL.Func([], [IDL.Vec(Department)], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'updateDepartment' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text, IDL.Opt(IDL.Principal)],
+      [],
+      [],
+    ),
   'updateDepartmentComplaintStatus' : IDL.Func(
       [IDL.Text, ComplaintStatus],
       [],
@@ -84,6 +116,11 @@ export const idlFactory = ({ IDL }) => {
     'high' : IDL.Null,
     'medium' : IDL.Null,
   });
+  const UserProfile = IDL.Record({
+    'name' : IDL.Text,
+    'email' : IDL.Text,
+    'departmentId' : IDL.Opt(IDL.Nat),
+  });
   const ComplaintStatus = IDL.Variant({
     'resolved' : IDL.Null,
     'inProgress' : IDL.Null,
@@ -98,17 +135,34 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'priority' : Priority,
   });
-  const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
+  const Department = IDL.Record({
+    'id' : IDL.Nat,
+    'headOfDepartment' : IDL.Opt(IDL.Principal),
+    'name' : IDL.Text,
+    'description' : IDL.Text,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createComplaint' : IDL.Func([IDL.Text, IDL.Text, Priority], [], []),
+    'createDepartment' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text, IDL.Opt(IDL.Principal)],
+        [],
+        [],
+      ),
     'deleteAccount' : IDL.Func([], [IDL.Text], []),
+    'deleteDepartment' : IDL.Func([IDL.Nat], [], []),
+    'findUsersByDepartmentId' : IDL.Func(
+        [IDL.Opt(IDL.Nat)],
+        [IDL.Vec(UserProfile)],
+        ['query'],
+      ),
     'getAllComplaints' : IDL.Func([], [IDL.Vec(Complaint)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getComplaintById' : IDL.Func([IDL.Text], [Complaint], ['query']),
+    'getComplaintsByDepartment' : IDL.Func([], [IDL.Vec(Complaint)], ['query']),
     'getComplaintsByStatus' : IDL.Func(
         [ComplaintStatus],
         [IDL.Vec(Complaint)],
@@ -119,6 +173,13 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Complaint)],
         ['query'],
       ),
+    'getDepartment' : IDL.Func([IDL.Nat], [Department], ['query']),
+    'getDepartmentCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'getDepartmentsByHeadOfDepartment' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(Department)],
+        ['query'],
+      ),
     'getSortedComplaints' : IDL.Func([], [IDL.Vec(Complaint)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
@@ -126,7 +187,13 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'listDepartments' : IDL.Func([], [IDL.Vec(Department)], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'updateDepartment' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text, IDL.Opt(IDL.Principal)],
+        [],
+        [],
+      ),
     'updateDepartmentComplaintStatus' : IDL.Func(
         [IDL.Text, ComplaintStatus],
         [],

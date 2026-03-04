@@ -1,6 +1,6 @@
 // Extended user profile stored in ICP backend
-// We encode campus-specific fields (role, department) into the name field
-// Format: "DisplayName|role:student|dept:B.Sc. - Computer Science"
+// We encode campus-specific fields (role, department, departmentId) into the name field
+// Format: "DisplayName|role:student|dept:B.Sc. - Computer Science|deptId:12345"
 
 import type { UserProfile } from '../backend';
 
@@ -11,17 +11,22 @@ export interface ExtendedProfile {
   email: string;
   campusRole: CampusRole;
   department: string;
+  departmentId?: bigint;
 }
 
 export interface UserProfileData {
   name: string;
   role: CampusRole;
   department?: string;
+  departmentId?: bigint;
 }
 
 export function encodeProfile(profile: ExtendedProfile): UserProfile {
-  const encoded = `${profile.displayName}|role:${profile.campusRole}|dept:${profile.department}`;
-  return { name: encoded, email: profile.email };
+  let encoded = `${profile.displayName}|role:${profile.campusRole}|dept:${profile.department}`;
+  if (profile.departmentId !== undefined) {
+    encoded += `|deptId:${profile.departmentId.toString()}`;
+  }
+  return { name: encoded, email: profile.email, departmentId: profile.departmentId };
 }
 
 export function decodeProfile(profile: UserProfile): ExtendedProfile {
@@ -30,6 +35,7 @@ export function decodeProfile(profile: UserProfile): ExtendedProfile {
 
   let campusRole: CampusRole = 'student';
   let department = '';
+  let departmentId: bigint | undefined = profile.departmentId;
 
   for (const part of parts.slice(1)) {
     if (part.startsWith('role:')) {
@@ -39,18 +45,31 @@ export function decodeProfile(profile: UserProfile): ExtendedProfile {
       }
     } else if (part.startsWith('dept:')) {
       department = part.slice(5);
+    } else if (part.startsWith('deptId:')) {
+      const idStr = part.slice(7);
+      if (idStr) {
+        try {
+          departmentId = BigInt(idStr);
+        } catch {
+          // ignore parse errors
+        }
+      }
     }
   }
 
-  return { displayName, email: profile.email, campusRole, department };
+  return { displayName, email: profile.email, campusRole, department, departmentId };
 }
 
 /**
  * Encodes user profile data into a pipe-delimited string for storage in the backend.
- * Format: "Name|role:ROLE|dept:DEPARTMENT"
+ * Format: "Name|role:ROLE|dept:DEPARTMENT|deptId:ID"
  */
 export function encodeUserProfile(data: UserProfileData): string {
-  return `${data.name.trim()}|role:${data.role}|dept:${data.department?.trim() || ''}`;
+  let encoded = `${data.name.trim()}|role:${data.role}|dept:${data.department?.trim() || ''}`;
+  if (data.departmentId !== undefined) {
+    encoded += `|deptId:${data.departmentId.toString()}`;
+  }
+  return encoded;
 }
 
 /**
@@ -61,6 +80,7 @@ export function decodeUserProfile(encodedName: string): UserProfileData {
   const name = parts[0] || '';
   let role: CampusRole = 'student';
   let department: string | undefined;
+  let departmentId: bigint | undefined;
 
   for (const part of parts.slice(1)) {
     if (part.startsWith('role:')) {
@@ -71,10 +91,19 @@ export function decodeUserProfile(encodedName: string): UserProfileData {
     } else if (part.startsWith('dept:')) {
       const d = part.slice(5);
       if (d) department = d;
+    } else if (part.startsWith('deptId:')) {
+      const idStr = part.slice(7);
+      if (idStr) {
+        try {
+          departmentId = BigInt(idStr);
+        } catch {
+          // ignore parse errors
+        }
+      }
     }
   }
 
-  return { name, role, department };
+  return { name, role, department, departmentId };
 }
 
 /**
@@ -107,6 +136,26 @@ export function getDepartment(encodedName: string): string | undefined {
     if (part.startsWith('dept:')) {
       const d = part.slice(5);
       if (d) return d;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Extracts the departmentId from an encoded profile name.
+ */
+export function getDepartmentId(encodedName: string): bigint | undefined {
+  const parts = encodedName.split('|');
+  for (const part of parts.slice(1)) {
+    if (part.startsWith('deptId:')) {
+      const idStr = part.slice(7);
+      if (idStr) {
+        try {
+          return BigInt(idStr);
+        } catch {
+          return undefined;
+        }
+      }
     }
   }
   return undefined;

@@ -17,6 +17,7 @@ import {
   GraduationCap,
   ClipboardList,
   Briefcase,
+  Building2,
 } from 'lucide-react';
 import { CAMPUS_ROLE_COLORS, CAMPUS_ROLE_LABELS } from '../constants/appRoles';
 import DeleteAccountDialog from './DeleteAccountDialog';
@@ -30,6 +31,7 @@ type View =
   | 'admin-users'
   | 'admin-emergencies'
   | 'admin-analytics'
+  | 'admin-departments'
   | 'hod-complaints'
   | 'hod-analytics'
   | 'staff-complaints'
@@ -90,6 +92,7 @@ export default function AppSidebar({ currentView, onNavigate, onClose }: AppSide
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'admin-complaints', label: 'All Complaints', icon: <ClipboardList className="w-4 h-4" /> },
     { id: 'admin-analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'admin-departments', label: 'Departments', icon: <Building2 className="w-4 h-4" /> },
     { id: 'admin-users', label: 'User Management', icon: <Users className="w-4 h-4" /> },
     { id: 'admin-emergencies', label: 'Emergency Logs', icon: <AlertTriangle className="w-4 h-4" /> },
   ];

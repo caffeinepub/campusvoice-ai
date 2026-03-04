@@ -1,48 +1,16 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Web application with admin and staff portals",
+  "summary": "New project",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-a-dedicated-admin-login-flow-page-similar-to-studentloginflow-and-hodloginflow-that-stores-admin-as-the-pending-role-in-localstorage-before-initiating-internet-identity-authentication-and-add-an-admin-role-card-on-the-landingpage-alongside-the-existing-student-and-hod-staff-cards",
-      "title": "Add a dedicated Admin login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'admin' as the pending role in localStorage before initiating Internet Identity authentication, and add an Admin role card on the LandingPage alongside the existing Student and HOD/Staff cards.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-dedicated-staff-login-flow-page-similar-to-studentloginflow-and-hodloginflow-that-stores-staff-as-the-pending-role-in-localstorage-before-initiating-internet-identity-authentication-and-ensure-the-landingpage-includes-a-staff-role-card-entry-point",
-      "title": "Add a dedicated Staff login flow page (similar to StudentLoginFlow and HODLoginFlow) that stores 'staff' as the pending role in localStorage before initiating Internet Identity authentication, and ensure the LandingPage includes a Staff role card entry point.",
+      "id": "feature-update-the-frontend-department-dropdown-in-the-complaint-submission-form-and-the-profile-setup-modal-to-display-all-departments-from-the-backend-ensuring-the-full-seeded-list-30-entries-is-rendered-correctly-without-truncation-or-layout-issues",
+      "title": "Update the frontend department dropdown in the complaint submission form and the profile setup modal to display all departments from the backend, ensuring the full seeded list (30+ entries) is rendered correctly without truncation or layout issues.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-a-full-admin-portal-with-a-dedicated-dashboard-view-showing-system-wide-complaint-statistics-total-pending-resolved-high-priority-across-all-departments-access-to-full-complaint-list-management-view-update-status-priority-for-all-complaints-user-management-page-emergency-logs-and-analytics-the-admin-sidebar-navigation-should-surface-all-admin-specific-pages",
-      "title": "Build a full Admin Portal with a dedicated dashboard view showing system-wide complaint statistics (total, pending, resolved, high-priority across all departments), access to full complaint list management (view, update status/priority for all complaints), user management page, emergency logs, and analytics. The admin sidebar navigation should surface all admin-specific pages.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-a-full-staff-portal-with-a-dedicated-dashboard-view-showing-complaints-relevant-to-the-staff-member-s-department-ability-to-view-and-update-complaint-status-for-complaints-in-their-department-and-access-to-analytics-filtered-by-their-department-the-staff-sidebar-navigation-should-surface-all-staff-specific-pages",
-      "title": "Build a full Staff Portal with a dedicated dashboard view showing complaints relevant to the staff member's department, ability to view and update complaint status for complaints in their department, and access to analytics filtered by their department. The staff sidebar navigation should surface all staff-specific pages.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-profilesetupmodal-to-allow-admin-and-staff-as-selectable-roles-during-profile-setup-ensuring-the-role-is-correctly-saved-and-encoded-in-the-backend-profile-via-the-pipe-delimited-format-used-in-userprofilehelpers",
-      "title": "Update the ProfileSetupModal to allow 'admin' and 'staff' as selectable roles during profile setup, ensuring the role is correctly saved and encoded in the backend profile via the pipe-delimited format used in userProfileHelpers.",
-      "reqIds": [
-        "REQ-5"
       ],
       "version": 1
     }
@@ -50,27 +18,14 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add admin portal",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Add staff portal",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Update the backend main actor to ensure the 'staff' role is recognized in role-based permission checks alongside the existing 'admin', 'hod', and 'student' roles. Staff should be permitted to update complaint statuses for complaints in their department.",
+      "summary": "Replace the current backend department seed/initial data with the full list of academic departments grouped by faculty. The departments must be pre-populated (or seeded on first deploy) with the following entries:\n\n**Computer Science Faculty (UG):** B.Sc. - Computer Science, BCA (Bachelor of Computer Applications), B.Sc. - Information Technology, B.Sc. - Computer Technology, B.Sc. - Data Science, B.Sc. - Computer Science(AI & ML), B.Sc. - Computer Science(AI), B.Sc. - Computer Science(AI & Data Science), B.Sc. - Computer Science(Cyber Security)\n**Computer Science Faculty (PG):** M.Sc. - Computer Science\n\n**Life Sciences Faculty (UG):** B.Sc. - Biotechnology, B.Sc. - Biochemistry, B.Sc. - Microbiology, B.Sc. - Zoology, B.Sc. - Clinical Laboratory Technology\n**Life Sciences Faculty (PG):** M.Sc. - Biotechnology, M.Sc. - Biochemistry, M.Sc. – Microbiology\n\n**Physical Sciences Faculty (UG):** B.Sc. - Physics, B.Sc. - Chemistry, B.Sc. - Mathematics, B.Sc. - Statistics, B.Sc. - Electronics & Communication, B.Sc. - Internet of Things\n**Physical Sciences Faculty (PG):** M.Sc - Physics, M.Sc. - Chemistry, M.Sc. - Mathematics\n\n**Commerce & Management Faculty (UG):** B.Com, B.Com (CA), B.Com (PA), B.Com (IT), B.B.A.\n**Commerce & Management Faculty (PG):** M.Com\n\n**Arts & Applied Sciences Faculty (UG):** B.A. - English, B.Sc. - Hotel Management & Catering Science, B.Sc. - Textile and Fashion Design\n**Arts & Applied Sciences Faculty (PG):** M.A., - English\n\nEach department entry should include its name and a description derived from its faculty group (e.g., \"Computer Science Faculty – UG\").",
       "reqIds": [
-        "REQ-6"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
-  "projectName": "CampusVoice AI",
+  "projectName": "CampusVoice",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
